@@ -1,4 +1,3 @@
----
 # Source: kiali-server/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -14,7 +13,6 @@ metadata:
     app.kubernetes.io/version: "v1.59.1"
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: "kiali"
-...
 ---
 # Source: kiali-server/templates/configmap.yaml
 apiVersion: v1
@@ -73,7 +71,7 @@ data:
       node_selector: {}
       pod_annotations: {}
       pod_labels:
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "true"
       priority_class_name: ""
       replicas: 1
       resources:
@@ -124,7 +122,6 @@ data:
       metrics_port: 9090
       port: 20001
       web_root: /kiali
-...
 ---
 # Source: kiali-server/templates/role-viewer.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -217,7 +214,6 @@ rules:
   - tokenreviews
   verbs:
   - create
-...
 ---
 # Source: kiali-server/templates/role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -285,7 +281,7 @@ rules:
   - security.istio.io
   - extensions.istio.io
   - telemetry.istio.io
-  - gateway.networking.k8s.io 
+  - gateway.networking.k8s.io
   resources: ["*"]
   verbs:
   - get
@@ -317,7 +313,6 @@ rules:
   - tokenreviews
   verbs:
   - create
-...
 ---
 # Source: kiali-server/templates/rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -341,7 +336,6 @@ subjects:
 - kind: ServiceAccount
   name: kiali
   namespace: istio-system
-...
 ---
 # Source: kiali-server/templates/role-controlplane.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -374,7 +368,6 @@ rules:
   - get
   - list
   - watch
-...
 ---
 # Source: kiali-server/templates/rolebinding-controlplane.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -399,7 +392,6 @@ subjects:
 - kind: ServiceAccount
   name: kiali
   namespace: istio-system
-...
 ---
 # Source: kiali-server/templates/service.yaml
 apiVersion: v1
@@ -428,7 +420,6 @@ spec:
   selector:
     app.kubernetes.io/name: kiali
     app.kubernetes.io/instance: kiali
-...
 ---
 # Source: kiali-server/templates/deployment.yaml
 apiVersion: apps/v1
@@ -468,7 +459,7 @@ spec:
         app.kubernetes.io/version: "v1.59.1"
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: "kiali"
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: "true"
       annotations:
         checksum/config: 214813f717d79921ff60daac56b143e903012ce71c9f0b1ae164d8c0f92b34d3
         prometheus.io/scrape: "true"
@@ -555,4 +546,3 @@ spec:
         configMap:
           name: kiali-cabundle
           optional: true
-...
