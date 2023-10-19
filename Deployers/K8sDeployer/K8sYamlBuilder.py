@@ -13,6 +13,13 @@ POD_ANTIAFFINITI_TEMPLATE = {'affinity':{'podAntiAffinity':{'requiredDuringSched
 # Add params to work_model json from kubernetes paramenters
 def customization_work_model(model, k8s_parameters):
     for service in model:
+        
+        # Skips entries that are not generated services.
+        is_generated_key = 'is_generated'
+        if is_generated_key in model[service] and not model[service][is_generated_key]:
+            print(f'Skipping service {service}.')
+            continue
+
         model[service].update({"url": f"{service}.{k8s_parameters['namespace']}.svc.{k8s_parameters['cluster_domain']}.local"})
         model[service].update({"path": k8s_parameters['path']})
         model[service].update({"image": k8s_parameters['image']})
@@ -39,6 +46,12 @@ def create_deployment_yaml_files(model, k8s_parameters, nfs, output_path):
     namespace = k8s_parameters['namespace']
     counter=0
     for service in model:
+        # Skips entries that are not generated services.
+        is_generated_key = 'is_generated'
+        if is_generated_key in model[service] and not model[service][is_generated_key]:
+            print(f'Skipping service {service}.')
+            continue
+
         counter=counter+1
         with open(f"{K8s_YAML_BUILDER_PATH}/Templates/DeploymentTemplate.yaml", "r") as file:
             f = file.read()
