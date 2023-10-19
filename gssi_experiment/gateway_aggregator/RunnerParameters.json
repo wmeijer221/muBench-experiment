@@ -5,7 +5,7 @@
       "workload_rounds": 1,
       "workload_type": "greedy",
       "workload_events": 5000,
-      "thread_pool_size": 4,
+      "thread_pool_size": 8,
       "result_file": "result"
    },
    "OutputPath": "SimulationWorkspace/Result",

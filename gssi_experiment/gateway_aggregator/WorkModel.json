@@ -2,13 +2,40 @@
   "s0": {
     "external_services": [
       {
-        "seq_len": 100,
-        "probabilities": {"s1":0.3, "s3": 0.7},
-        "services": ["s1", "s3"]
+        "seq_len": 1,
+        "probabilities": {
+          "gateway-aggregator-service": 1
+        },
+        "services": [
+          "gateway-aggregator-service"
+        ]
       },
       {
-        "seq_len": 100,
-        "services": ["s2"]
+        "seq_len": 1,
+        "probabilities": {
+          "s1": 1
+        },
+        "services": [
+          "s1"
+        ]
+      },
+      {
+        "seq_len": 1,
+        "probabilities": {
+          "s2": 1
+        },
+        "services": [
+          "s2"
+        ]
+      },
+      {
+        "seq_len": 1,
+        "probabilities": {
+          "s3": 0
+        },
+        "services": [
+          "s3"
+        ]
       }
     ],
     "internal_service": {
@@ -53,14 +80,14 @@
     "external_services": [
       {
         "seq_len": 1,
-        "services": [
-        ]
+        "probabilities": {},
+        "services": []
       }
     ],
     "internal_service": {
       "loader": {
         "cpu_stress": {
-          "run": true,
+          "run": false,
           "range_complexity": [
             100,
             100
@@ -99,8 +126,8 @@
     "external_services": [
       {
         "seq_len": 1,
-        "services": [
-        ]
+        "probabilities": {},
+        "services": []
       }
     ],
     "internal_service": {
@@ -145,8 +172,8 @@
     "external_services": [
       {
         "seq_len": 1,
-        "services": [
-        ]
+        "probabilities": {},
+        "services": []
       }
     ],
     "internal_service": {
@@ -186,5 +213,12 @@
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
     "namespace": "default"
+  },
+
+  "gateway-aggregator-service": {
+    "is_generated": false,
+    "url": "gateway-aggregator-service.default.svc.cluster.local",
+    "path": "/api/v1"
   }
+  
 }
