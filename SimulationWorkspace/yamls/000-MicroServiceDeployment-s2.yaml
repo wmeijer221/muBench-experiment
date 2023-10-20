@@ -30,7 +30,7 @@ spec:
       #schedulerName: no-balancing-scheduler
       containers:
         - name: s2
-          image: msvcbench/microservice_v4-screen:latest
+          image: wmeijer221/microservice_v4-screen:latest
           ports:
             - name: http-mubpodport
               containerPort: 8080

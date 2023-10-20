@@ -17,5 +17,7 @@ EXPOSE 51313
 COPY CellController-mp.py ExternalServiceExecutor.py InternalServiceExecutor.py mub.proto mub_pb2.py \
 mub_pb2_grpc.py gunicorn.conf.py start-mp.sh ./
 
+RUN export FLASK_DEBUG=true
+
 CMD [ "/bin/bash", "/app/start-mp.sh"]
 
