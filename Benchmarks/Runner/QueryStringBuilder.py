@@ -1,17 +1,19 @@
-from typing import List
+"""
+Implements a number of header factories.
+"""
+
 import random
-import urllib.parse
-
 import sys
+from typing import List
 
-QUERY_PARAMETER_KEY = "QueryParameters"
+HEADER_PARAMETER_KEY = "HeaderParameters"
 
 
-def build_query_builder_from_runner_parameters(runner_parameters: dict):
+def build_header_factory_from_runner_parameters(runner_parameters: dict):
     """Factory method that uses Runner parameters."""
-    if QUERY_PARAMETER_KEY not in runner_parameters:
-        return NoQueryString()
-    query_params = runner_parameters[QUERY_PARAMETER_KEY]
+    if HEADER_PARAMETER_KEY not in runner_parameters:
+        return StaticHeaderFactory()
+    query_params = runner_parameters[HEADER_PARAMETER_KEY]
     return build_query_builder(query_params["type"], query_params["parameters"])
 
 
@@ -22,32 +24,43 @@ def build_query_builder(query_type: str, parameters: dict):
     return query_builder(**parameters)
 
 
-class QueryStringBuilder:
+class HeaderFactory:
     """Base class for query string builders."""
 
-    def build_query(self) -> str:
+    def build_headers(self) -> dict:
+        """Factory method for headers."""
         raise NotImplementedError()
 
 
-class NoQueryString(QueryStringBuilder):
-    """When no queries are generated."""
+class StaticHeaderFactory(HeaderFactory):
+    """Adds static headers."""
 
-    def build_query(self) -> str:
-        return ""
+    def __init__(self, **kwargs) -> None:
+        self.__kwargs = kwargs
+
+    def build_headers(self) -> dict:
+        return self.__kwargs
 
 
-class AggregatedRequestBuilder(QueryStringBuilder):
-    def __init__(self, endpoints: List[str], probabilities: List[float]) -> None:
+class AggregatedHeaderFactory(HeaderFactory):
+    """Builds header for aggregated request."""
+
+    def __init__(
+        self, base_endpoint: str, endpoints: List[str], probabilities: List[float]
+    ) -> None:
+        self.__base_endpoint = base_endpoint
         self.__endpoints = endpoints
         self.__probabilities = probabilities
 
-    def build_query(self) -> str:
+    def build_headers(self) -> dict:
         targets = [
             endpoint
             for (endpoint, probability) in zip(self.__endpoints, self.__probabilities)
             if random.random() <= probability
         ]
-
-        return {
-            "mything": "asdf"
+        targets = ",".join(targets)
+        header = {
+            "X-BaseEndpoint": self.__base_endpoint,
+            "X-AggregatedEndpoints": targets,
         }
+        return header

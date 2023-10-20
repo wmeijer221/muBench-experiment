@@ -39,7 +39,7 @@ class Counter(object):
 
 
 def do_requests(
-    event, stats, local_latency_stats, query_builder: qsb.QueryStringBuilder
+    event, stats, local_latency_stats, query_builder: qsb.HeaderFactory
 ):
     global processed_requests, last_print_time_ms, error_requests, pending_requests
     # pprint(workload[event]["services"])
@@ -52,8 +52,8 @@ def do_requests(
             pending_requests.increase()
 
         req_url = f"{ms_access_gateway}/{event['service']}"
-        query = query_builder.build_query()
-        r = requests.get(req_url, params=query)
+        header = query_builder.build_headers()
+        r = requests.get(req_url, headers=header)
         print(r.url)
         pending_requests.decrease()
 
@@ -84,7 +84,7 @@ def job_assignment(
     event,
     stats,
     local_latency_stats,
-    query_builder: qsb.QueryStringBuilder,
+    query_builder: qsb.HeaderFactory,
 ):
     global timing_error_requests, pending_requests
     try:
@@ -348,7 +348,7 @@ try:
     with open(parameters_file_path) as f:
         params = json.load(f)
     runner_parameters = params["RunnerParameters"]
-    query_builder = qsb.build_query_builder_from_runner_parameters(runner_parameters)
+    query_builder = qsb.build_header_factory_from_runner_parameters(runner_parameters)
     runner_type = runner_parameters["workload_type"]  # {workload (default), greedy}
     workload_events = runner_parameters["workload_events"]  # n. request for greedy
     ms_access_gateway = runner_parameters[
