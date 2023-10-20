@@ -1,13 +1,16 @@
-all: delete build miniload minishow create
+all: delete build minishow create
+
+start: build minishow create
 
 build: 
-	docker build . -t custom-services/gateway-aggregator
+	docker build -t "custom-services/gateway-aggregator" .
 
-miniload: 
-	minikube image load custom-services/gateway-aggregator
+miniload:
+	minikube image load "custom-services/gateway-aggregator:latest"
 
 minishow:
-	minikube image ls | grep gateway-aggregator
+	docker image list | grep gateway-aggregator
+	minikube image list --format=table | grep gateway-aggregator
 
 refresh: delete create
 
@@ -16,4 +19,3 @@ create:
 
 delete:
 	kubectl delete -f ./service.yaml
-

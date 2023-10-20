@@ -17,7 +17,7 @@ def customization_work_model(model, k8s_parameters):
         # Skips entries that are not generated services.
         is_generated_key = 'is_generated'
         if is_generated_key in model[service] and not model[service][is_generated_key]:
-            print(f'Skipping service {service}.')
+            print(f'###############\nSkipping service {service}.\n###############')
             continue
 
         model[service].update({"url": f"{service}.{k8s_parameters['namespace']}.svc.{k8s_parameters['cluster_domain']}.local"})
@@ -49,7 +49,7 @@ def create_deployment_yaml_files(model, k8s_parameters, nfs, output_path):
         # Skips entries that are not generated services.
         is_generated_key = 'is_generated'
         if is_generated_key in model[service] and not model[service][is_generated_key]:
-            print(f'Skipping service {service}.')
+            print(f'###############\nSkipping service {service}.\n###############')
             continue
 
         counter=counter+1

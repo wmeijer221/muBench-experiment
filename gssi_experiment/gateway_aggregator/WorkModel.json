@@ -4,10 +4,10 @@
       {
         "seq_len": 1,
         "probabilities": {
-          "gateway-aggregator-service": 1
+          "gateway-aggregator": 1
         },
         "services": [
-          "gateway-aggregator-service"
+          "gateway-aggregator"
         ]
       },
       {
@@ -214,11 +214,10 @@
     "image": "msvcbench/microservice_v3-screen:1.0",
     "namespace": "default"
   },
-
-  "gateway-aggregator-service": {
+  "gateway-aggregator": {
+    "__comment": "This service is not created by the K8s builder, instead a custom service is deployed.",
     "is_generated": false,
-    "url": "gateway-aggregator-service.default.svc.cluster.local",
+    "url": "gateway-aggregator.default.svc.cluster.local",
     "path": "/api/v1"
   }
-  
 }

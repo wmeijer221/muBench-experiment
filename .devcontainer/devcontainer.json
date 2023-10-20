@@ -16,7 +16,7 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "apt-get install openssh-client -y && cat /etc/os-release"
+	"postCreateCommand": "apt-get install openssh-client -y && apt install make && cat /etc/os-release"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
