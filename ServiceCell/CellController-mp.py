@@ -149,6 +149,12 @@ def start_worker():
             if val is not None:
                 jaeger_headers[jhdr] = val
 
+        # collects custom headers
+        custom_headers = {
+            key: value for key, value in request.headers.items() if key.startswith("X-")
+        }
+        jaeger_headers.update(custom_headers)
+
         # if POST check the presence of a trace
         trace = dict()
         if request.method == "POST":

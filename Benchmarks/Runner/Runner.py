@@ -54,7 +54,6 @@ def do_requests(
         req_url = f"{ms_access_gateway}/{event['service']}"
         header = query_builder.build_headers()
         r = requests.get(req_url, headers=header)
-        print(r.url)
         pending_requests.decrease()
 
         if r.status_code != 200:

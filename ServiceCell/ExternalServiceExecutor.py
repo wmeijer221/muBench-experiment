@@ -34,9 +34,10 @@ def init_gRPC(my_service_mesh, workmodel, server_port, app):
 
 def request_REST(service,id,work_model,s,trace,query_string, app, jaeger_context):
     try:
+        app.logger.error(jaeger_context)
         service_no_escape = service.split("__")[0]
         if len(trace)==0 and len(query_string)==0:
-            # default 
+            # default
             return s.get(f'http://{work_model[service_no_escape]["url"]}{work_model[service_no_escape]["path"]}', headers=jaeger_context)
         elif len(trace)>0:
             # trace-driven request

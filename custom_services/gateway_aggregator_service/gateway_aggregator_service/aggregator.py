@@ -10,8 +10,11 @@ from fastapi import Request
 
 async def aggregate_requests(request: Request) -> List[bytes]:
     """Performs the requests in parallel and aggregates their results."""
+    # TODO: if this fails, raise something to trigger a 400 HTTP error.
     base_endpoint = get_base_endpoint(request)
     target_endpoints = get_aggregated_endpoints(request)
+    # TODO: update this to work with a formatted string instead
+    # (i.e., that the endpoint can be specified somewhere inside the URL, not just at the end.)
     target_urls = [
         f"{base_endpoint}{target_endpoint}" for target_endpoint in target_endpoints
     ]
