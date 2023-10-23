@@ -1,16 +1,12 @@
-all: delete build minishow create
+all: delete start
 
-start: build minishow create
+start: build push create
 
 build: 
-	docker build -t custom-services/gateway-aggregator .
+	docker build -t wmeijer221/microservice_v4-screen:gateway_aggregator .
 
-miniload:
-	minikube image load docker.io/custom-services/gateway-aggregator
-
-minishow:
-	docker image list | grep gateway-aggregator
-	minikube image list --format=table | grep gateway-aggregator
+push:
+	docker push wmeijer221/microservice_v4-screen:gateway_aggregator
 
 refresh: delete create
 
@@ -19,6 +15,3 @@ create:
 
 delete:
 	kubectl delete -f ./service.yaml
-
-reeval:
-	eval $(minikube docker-env)
