@@ -135,6 +135,7 @@ parser.add_argument(
 parser.add_argument(
     "-s",
     "--steps",
+    type=int,
     action="store",
     dest="simulation_steps",
     default=5,
