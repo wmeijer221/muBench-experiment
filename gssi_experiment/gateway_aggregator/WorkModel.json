@@ -9,39 +9,12 @@
         "services": [
           "gateway-aggregator"
         ]
-      },
-      {
-        "seq_len": 1,
-        "probabilities": {
-          "s1": 1
-        },
-        "services": [
-          "s1"
-        ]
-      },
-      {
-        "seq_len": 1,
-        "probabilities": {
-          "s2": 1
-        },
-        "services": [
-          "s2"
-        ]
-      },
-      {
-        "seq_len": 1,
-        "probabilities": {
-          "s3": 0
-        },
-        "services": [
-          "s3"
-        ]
       }
     ],
     "internal_service": {
       "loader": {
         "cpu_stress": {
-          "run": true,
+          "run": false,
           "range_complexity": [
             100,
             100
@@ -107,7 +80,7 @@
           "disk_write_block_size": 1024
         },
         "sleep_stress": {
-          "run": false,
+          "run": true,
           "sleep_time": 0.01
         },
         "mean_bandwidth": 100,
@@ -133,7 +106,7 @@
     "internal_service": {
       "loader": {
         "cpu_stress": {
-          "run": true,
+          "run": false,
           "range_complexity": [
             100,
             100
@@ -153,7 +126,7 @@
           "disk_write_block_size": 1024
         },
         "sleep_stress": {
-          "run": false,
+          "run": true,
           "sleep_time": 0.01
         },
         "mean_bandwidth": 100,
@@ -179,7 +152,7 @@
     "internal_service": {
       "loader": {
         "cpu_stress": {
-          "run": true,
+          "run": false,
           "range_complexity": [
             100,
             100
@@ -199,7 +172,7 @@
           "disk_write_block_size": 1024
         },
         "sleep_stress": {
-          "run": false,
+          "run": true,
           "sleep_time": 0.01
         },
         "mean_bandwidth": 100,
