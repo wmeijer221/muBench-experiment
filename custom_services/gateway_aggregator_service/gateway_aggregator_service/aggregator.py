@@ -27,6 +27,8 @@ def build_url(base_endpoint: str, target_endpoint: str) -> str:
     same k8s node, its IP addresses are returned, otherwise, the composition
     of the base_endpoint and target endpoint are returned. This function
     assumes the service name is exactly the same as the target endpoint name.
+    Also assumes that pods don't move anywhere (i.e., relocated to different 
+    nodes, or that they are up-/downscaled).
     """
     if not target_endpoint in ENDPOINT_CACHE:
         ips = get_ips_on_k8s_node(app_filter=target_endpoint)
