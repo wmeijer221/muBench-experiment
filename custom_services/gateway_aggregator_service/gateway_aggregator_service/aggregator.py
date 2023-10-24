@@ -27,7 +27,7 @@ def build_url(base_endpoint: str, target_endpoint: str) -> str:
     same k8s node, its IP addresses are returned, otherwise, the composition
     of the base_endpoint and target endpoint are returned. This function
     assumes the service name is exactly the same as the target endpoint name.
-    Also assumes that pods don't move anywhere (i.e., relocated to different 
+    Also assumes that pods don't move anywhere (i.e., relocated to different
     nodes, or that they are up-/downscaled).
     """
     if not target_endpoint in ENDPOINT_CACHE:
@@ -36,7 +36,7 @@ def build_url(base_endpoint: str, target_endpoint: str) -> str:
             [f"{base_endpoint}{target_endpoint}"]
             if len(ips) == 0
             # TODO: don't hardcode this "/api/v1/" stuff.
-            else list([f"{ip}/api/v1" for ip in ips])
+            else list([f"http://{ip}:8080/api/v1" for ip in ips])
         )
 
         ENDPOINT_CACHE[target_endpoint] = cached_endpoints
@@ -52,7 +52,9 @@ async def aggregate_requests(request: Request) -> List[bytes]:
         base_endpoint = get_base_endpoint(request)
         target_endpoints = get_aggregated_endpoints(request)
     except Exception as ex:
-        raise HTTPException(status_code=400, detail=f"Invalid headers: {ex.__cause__}.")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid headers: {ex.__cause__}."
+        ) from ex
     target_urls = [
         # TODO: Should implement e.g. RR instead of grabbing the first element.
         build_url(base_endpoint, target_endpoint)[0]
@@ -89,13 +91,16 @@ async def get_many(urls: List[str]) -> List[Any]:
 async def get(url, session: aiohttp.ClientSession) -> bytes:
     """Makes GET request and returns the response."""
     try:
-        print(f'Making request to "{url}"')
+        msg = f'Making request to "{url}"'
+        logger.info(msg)
         async with session.get(url=url) as response:
             resp = await response.read()
             if response.status / 100 == 2:
-                print(f"Successfully got url {url} with resp of length {len(resp)}.")
+                msg = f"Successfully got url {url} with resp of length {len(resp)}."
+                logger.info(msg)
             else:
-                print(f"Failed request to url {url} with statuscode {response.status}.")
+                msg = f"Failed request to url {url} with statuscode {response.status}."
+                logger.warning(msg)
             return resp
     except Exception as e:
         print(f"Unable to get url {url} due to {e.__class__}.")

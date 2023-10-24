@@ -2,13 +2,22 @@
 Implements simple gateway aggregator.
 """
 
+import logging
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 import aggregator
 
 
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
