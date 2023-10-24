@@ -2,14 +2,46 @@
 Implements simple message aggregator.
 """
 
-from typing import List, Any
+import logging
+from typing import List, Any, Dict
+
 import asyncio
 import aiohttp
 from fastapi import Request, HTTPException
 
+from k8s_helper import get_ips_on_k8s_node
+
 
 BASE_ENDPOINT_HEADER_KEY = "X-BaseEndpoint"
 AGGREGATED_ENDPOINT_HEADER_KEY = "X-AggregatedEndpoints"
+
+ENDPOINT_CACHE: Dict[str, List[str]] = dict()
+
+logger = logging.getLogger(__name__)
+
+
+def build_url(base_endpoint: str, target_endpoint: str) -> str:
+    """
+    Factory method for URLs for the provided target endpoints.
+    If the pod corresponding to one of the endpoins is hosted on the
+    same k8s node, its IP addresses are returned, otherwise, the composition
+    of the base_endpoint and target endpoint are returned. This function
+    assumes the service name is exactly the same as the target endpoint name.
+    """
+    if not target_endpoint in ENDPOINT_CACHE:
+        ips = get_ips_on_k8s_node(app_filter=target_endpoint)
+        cached_endpoints = (
+            [f"{base_endpoint}{target_endpoint}"]
+            if len(ips) == 0
+            # TODO: don't hardcode this "/api/v1/" stuff.
+            else list([f"{ip}/api/v1" for ip in ips])
+        )
+
+        ENDPOINT_CACHE[target_endpoint] = cached_endpoints
+        msg = f"Updated endpoint cache: {target_endpoint}={cached_endpoints}."
+        logger.info(msg)
+
+    return ENDPOINT_CACHE[target_endpoint]
 
 
 async def aggregate_requests(request: Request) -> List[bytes]:
@@ -20,7 +52,9 @@ async def aggregate_requests(request: Request) -> List[bytes]:
     except Exception as ex:
         raise HTTPException(status_code=400, detail=f"Invalid headers: {ex.__cause__}.")
     target_urls = [
-        f"{base_endpoint}{target_endpoint}" for target_endpoint in target_endpoints
+        # TODO: Should implement e.g. RR instead of grabbing the first element.
+        build_url(base_endpoint, target_endpoint)[0]
+        for target_endpoint in target_endpoints
     ]
     result = await get_many(target_urls)
     return result
