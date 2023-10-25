@@ -43,7 +43,7 @@
               180,
               180
             ],
-            "thread_pool_size": 16,
+            "thread_pool_size": 1,
             "trials": 20
           },
           "mean_bandwidth": 1,
@@ -58,7 +58,7 @@
               70,
               70
             ],
-            "thread_pool_size": 16,
+            "thread_pool_size": 1,
             "trials": 20
           },
           "mean_bandwidth": 1,
@@ -67,8 +67,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 16,
-    "threads": 32,
+    "workers": 4,
+    "threads": 8,
     "url": "s1.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -92,7 +92,7 @@
               120,
               120
             ],
-            "thread_pool_size": 16,
+            "thread_pool_size": 1,
             "trials": 20
           },
           "mean_bandwidth": 1,
@@ -107,7 +107,7 @@
               150,
               150
             ],
-            "thread_pool_size": 16,
+            "thread_pool_size": 1,
             "trials": 20
           },
           "mean_bandwidth": 1,
@@ -116,8 +116,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 16,
-    "threads": 32,
+    "workers": 4,
+    "threads": 8,
     "url": "s2.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -141,7 +141,7 @@
               50,
               50
             ],
-            "thread_pool_size": 16,
+            "thread_pool_size": 1,
             "trials": 20
           },
           "mean_bandwidth": 1,
@@ -156,7 +156,7 @@
               200,
               200
             ],
-            "thread_pool_size": 16,
+            "thread_pool_size": 1,
             "trials": 20
           },
           "mean_bandwidth": 1,
@@ -165,8 +165,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 16,
-    "threads": 32,
+    "workers": 4,
+    "threads": 8,
     "url": "s3.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",

@@ -60,11 +60,9 @@ async def aggregate_requests(request: Request) -> List[bytes]:
         build_url(base_endpoint, target_endpoint)[0]
         for target_endpoint in target_endpoints
     ]
-    print(request.headers)
     forwarded_headers = {
         key: value for key, value in request.headers.items() if key.lower().startswith("x-")
     }
-    logger.info(f'{forwarded_headers=}')
     result = await get_many(target_urls, forwarded_headers)
     return result
 

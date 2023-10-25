@@ -56,7 +56,9 @@ spec:
               value: '6'
             - name: TN
               value: '16'
-          resources: {}    
+          resources: 
+            limits:
+              cpu: 1000m    
         
         
 

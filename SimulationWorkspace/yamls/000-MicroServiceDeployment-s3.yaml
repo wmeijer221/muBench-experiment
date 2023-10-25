@@ -53,10 +53,12 @@ spec:
                 fieldRef:
                   fieldPath: metadata.labels['app']
             - name: PN
-              value: '16'
+              value: '4'
             - name: TN
-              value: '32'
-          resources: {}    
+              value: '8'
+          resources: 
+            limits:
+              cpu: 1000m    
         
         
 

@@ -9,6 +9,8 @@ Additionally, ``thread_pool_size`` in the ``RunnerParameters`` is set to this nu
 
 Any additional changes are marked in the figure name.
 
+A small-scale experiment is performed, using 400 requests and only 4 different values of ``s1_intensity``.
+
 # Experimental Environment
 
 Ran on a single commodity device using minikube.
@@ -23,4 +25,4 @@ Interestingly, the minimum response time seems to follow this curve quite consis
 
 I am fairly certain the results generated in Pinciroli's work cannot be replicated on a single machine. Consequently, I am fairly certain that their results are wholly dependent on the fact that single services bottleneck - i.e., that each service has a separate compute node. - which is unrealistic in microservice architectures.
 
-Pod resources can be restricted in Kubernetes, which is a reasonable next step.
+Pod resources can be restricted in Kubernetes, which is a reasonable next step to explore.

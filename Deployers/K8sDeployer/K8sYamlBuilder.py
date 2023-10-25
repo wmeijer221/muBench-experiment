@@ -24,6 +24,7 @@ def customization_work_model(model, k8s_parameters):
         model[service].update({"path": k8s_parameters['path']})
         model[service].update({"image": k8s_parameters['image']})
         model[service].update({"namespace": k8s_parameters['namespace']})
+        # TODO: These should be defined per service, not in general.
         if "replicas" in k8s_parameters.keys():
             # override replica value of workmodel.json
             model[service].update({"replicas": k8s_parameters['replicas']})
