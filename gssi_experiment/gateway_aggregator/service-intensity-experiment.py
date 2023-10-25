@@ -152,25 +152,32 @@ BASE_WORKER_PARAM = """{{
       ],
       "workload_rounds": 1,
       "workload_type": "greedy",
-      "workload_events": 5000,
+      "workload_events": 4000,
       "thread_pool_size": 8,
       "result_file": "result",
-      "HeaderParameters": {{
-         "type": "AggregatedHeaderFactory",
-         "parameters": {{
-            "base_endpoint": "http://192.168.49.2:31113/",
-            "endpoints": [
-               "s1",
-               "s2",
-               "s3"
-            ],
-            "probabilities": [
-               {s1_intensity},
-               1,
-               {s3_intensity}
-            ]
-         }}
-      }}
+      "ingress_service": "mubench-ingress",
+      "HeaderParameters": [
+            {{
+                "type": "RequestTypeHeader",
+                "parameters": {{
+                    "request_types": [
+                        "s1_intensive",
+                        "s3_intensive"
+                    ],
+                    "probabilities": [
+                        {s1_intensity},
+                        {s3_intensity}
+                    ]
+                }}
+            }},
+            {{
+                "type": "StaticHeaderFactory",
+                "parameters": {{
+                    "x-baseendpoint": "http://192.168.49.2:31113/",
+                    "x-aggregatedendpoints": "s1,s2,s3"
+                }}
+            }}
+        ]
    }},
    "OutputPath": "SimulationWorkspace/Result",
    "_AfterWorkloadFunction": {{
@@ -178,7 +185,44 @@ BASE_WORKER_PARAM = """{{
       "file_path": "Function",
       "function_name": "get_prometheus_stats"
    }}
-}}
-"""
+}}"""
+
+# BASE_WORKER_PARAM = """{{
+#    "RunnerParameters": {{
+#       "ms_access_gateway": "http://192.168.49.2:31113",
+#       "workload_files_path_list": [
+#          "SimulationWorkspace/workload.json"
+#       ],
+#       "workload_rounds": 1,
+#       "workload_type": "greedy",
+#       "workload_events": 400,
+#       "thread_pool_size": 14,
+#       "result_file": "result",
+#       "ingress_service": "mubench-ingress",
+#       "HeaderParameters": [{{
+#          "type": "AggregatedHeaderFactory",
+#          "parameters": {{
+#             "base_endpoint": "http://192.168.49.2:31113/",
+#             "endpoints": [
+#                "s1",
+#                "s2",
+#                "s3"
+#             ],
+#             "probabilities": [
+#                {s1_intensity},
+#                1,
+#                {s3_intensity}
+#             ]
+#          }}
+#       }}
+#    }},
+#    "OutputPath": "SimulationWorkspace/Result",
+#    "_AfterWorkloadFunction": {{
+#       "_comment": "remove _ from the object name to execute the funcions",
+#       "file_path": "Function",
+#       "function_name": "get_prometheus_stats"
+#    }}
+# }}
+# """
 
 main()

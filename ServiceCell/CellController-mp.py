@@ -8,6 +8,7 @@ import time
 import traceback
 from threading import Thread
 from concurrent import futures
+import jsonmerge
 
 # from multiprocessing import Array, Manager, Value
 
@@ -23,6 +24,10 @@ import mub_pb2_grpc as pb2_grpc
 import mub_pb2 as pb2
 import grpc
 
+import logging
+
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+logging.basicConfig(level=logging.INFO)
 
 # Configuration of global variables
 
@@ -128,6 +133,19 @@ def start_worker():
         my_service_mesh = my_work_model["external_services"]
         my_internal_service = my_work_model["internal_service"]
 
+        # Loads load model based on the acquired message type.
+        if (
+            "request_type_dependent_internal_service" in my_work_model
+            and my_work_model["request_type_dependent_internal_service"]
+        ):
+            message_type = request.headers.get("x-requesttype")
+            app.logger.info(
+                'Loading internal service of type "{message_type}"'.format(
+                    message_type=message_type
+                )
+            )
+            my_internal_service = my_internal_service[message_type]
+
         # update internal service behaviour
         if (
             behaviour_id != "default"
@@ -194,6 +212,8 @@ def start_worker():
         # Execute the internal service
         app.logger.info("*************** INTERNAL SERVICE STARTED ***************")
         start_local_processing = time.time()
+
+        # Overwrites the internal service with data that's written in the header.
         body = run_internal_service(my_internal_service)
         local_processing_latency = time.time() - start_local_processing
         INTERNAL_PROCESSING.labels(ZONE, K8S_APP, request.method, request.path).observe(

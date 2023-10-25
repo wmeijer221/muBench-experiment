@@ -37,7 +37,6 @@ class Counter(object):
         finally:
             self.lock.release()
 
-
 def do_requests(
     event, stats, local_latency_stats, query_builder: qsb.HeaderFactory
 ):
@@ -68,7 +67,7 @@ def do_requests(
 
         if now_ms > last_print_time_ms + 1_000:
             print(
-                f"Processed request {processed_requests.value}, latency {req_latency_ms}, pending requests {pending_requests.value} \n"
+                f"Processed request {processed_requests.value}, latency {req_latency_ms}, pending requests {pending_requests.value}"
             )
             last_print_time_ms = now_ms
         return event["time"], req_latency_ms
@@ -104,7 +103,7 @@ def job_assignment(
 
 
 def file_runner(workload=None):
-    global start_time, stats, local_latency_stats, query_builder
+    global start_time, stats, local_latency_stats, header_builder
 
     stats = list()
     print("###############################################")
@@ -129,7 +128,7 @@ def file_runner(workload=None):
             (event["time"] / 1000 + 2),
             1,
             job_assignment,
-            argument=(pool, futures, event, stats, local_latency_stats, query_builder),
+            argument=(pool, futures, event, stats, local_latency_stats, header_builder),
         )
 
     start_time = time.time()
@@ -169,7 +168,9 @@ def file_runner(workload=None):
 
 
 def greedy_runner():
-    global start_time, stats, local_latency_stats, runner_parameters, query_builder
+    global start_time, stats, local_latency_stats, runner_parameters, header_builder
+
+    print(f'{runner_parameters=}')
 
     if "ingress_service" in runner_parameters.keys():
         srv = runner_parameters["ingress_service"]
@@ -195,7 +196,7 @@ def greedy_runner():
             event_time,
             1,
             job_assignment,
-            argument=(pool, futures, event, stats, local_latency_stats, query_builder),
+            argument=(pool, futures, event, stats, local_latency_stats, header_builder),
         )
 
     start_time = time.time()
@@ -236,7 +237,7 @@ def greedy_runner():
 
 
 def periodic_runner():
-    global start_time, stats, local_latency_stats, runner_parameters, query_builder
+    global start_time, stats, local_latency_stats, runner_parameters, header_builder
 
     if "rate" in runner_parameters.keys():
         rate = runner_parameters["rate"]
@@ -264,7 +265,7 @@ def periodic_runner():
             event_time,
             1,
             job_assignment,
-            argument=(pool, futures, event, stats, local_latency_stats, query_builder),
+            argument=(pool, futures, event, stats, local_latency_stats, header_builder),
         )
 
     start_time = time.time()
@@ -337,7 +338,7 @@ parameters_file_path = args.parameters_file
 
 last_print_time_ms = 0
 run_after_workload = None
-query_builder = None
+header_builder = None
 timing_error_requests = 0
 processed_requests = Counter()
 error_requests = Counter()
@@ -347,7 +348,7 @@ try:
     with open(parameters_file_path) as f:
         params = json.load(f)
     runner_parameters = params["RunnerParameters"]
-    query_builder = qsb.build_header_factory_from_runner_parameters(runner_parameters)
+    header_builder = qsb.build_header_factory_from_runner_parameters(runner_parameters)
     runner_type = runner_parameters["workload_type"]  # {workload (default), greedy}
     workload_events = runner_parameters["workload_events"]  # n. request for greedy
     ms_access_gateway = runner_parameters[

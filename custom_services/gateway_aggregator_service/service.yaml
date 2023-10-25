@@ -59,5 +59,9 @@ spec:
     app: gateway-aggregator
   ports:
   - port: 80
+    name: ingress-port
+    targetPort: 8000
+  - port: 8080
+    name: runner-ingress-port
     targetPort: 8000
   type: NodePort

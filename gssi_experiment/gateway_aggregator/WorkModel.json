@@ -1,5 +1,5 @@
 {
-  "s0": {
+  "mubench-ingress": {
     "external_services": [
       {
         "seq_len": 1,
@@ -11,40 +11,16 @@
         ]
       }
     ],
+    "request_type_dependent_internal_service": false,
     "internal_service": {
       "loader": {
-        "cpu_stress": {
-          "run": false,
-          "range_complexity": [
-            100,
-            100
-          ],
-          "thread_pool_size": 1,
-          "trials": 33
-        },
-        "memory_stress": {
-          "run": false,
-          "memory_size": 10000,
-          "memory_io": 1000
-        },
-        "disk_stress": {
-          "run": false,
-          "tmp_file_name": "mubtestfile.txt",
-          "disk_write_block_count": 1000,
-          "disk_write_block_size": 1024
-        },
-        "sleep_stress": {
-          "run": false,
-          "sleep_time": 0.01
-        },
-        "mean_bandwidth": 100,
         "function_id": "f1"
       }
     },
     "request_method": "rest",
-    "workers": 4,
+    "workers": 6,
     "threads": 16,
-    "url": "s0.default.svc.cluster.local",
+    "url": "mubench-ingress.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
     "namespace": "default"
@@ -57,39 +33,42 @@
         "services": []
       }
     ],
+    "request_type_dependent_internal_service": true,
     "internal_service": {
-      "loader": {
-        "cpu_stress": {
-          "run": false,
-          "range_complexity": [
-            100,
-            100
-          ],
-          "thread_pool_size": 1,
-          "trials": 33
-        },
-        "memory_stress": {
-          "run": false,
-          "memory_size": 10000,
-          "memory_io": 1000
-        },
-        "disk_stress": {
-          "run": false,
-          "tmp_file_name": "mubtestfile.txt",
-          "disk_write_block_count": 1000,
-          "disk_write_block_size": 1024
-        },
-        "sleep_stress": {
-          "run": true,
-          "sleep_time": 0.01
-        },
-        "mean_bandwidth": 100,
-        "function_id": "f1"
+      "s1_intensive": {
+        "loader": {
+          "cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              180,
+              180
+            ],
+            "thread_pool_size": 1,
+            "trials": 15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "s3_intensive": {
+        "loader": {
+          "cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              70,
+              70
+            ],
+            "thread_pool_size": 1,
+            "trials": 15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
       }
     },
     "request_method": "rest",
-    "workers": 4,
-    "threads": 16,
+    "workers": 1,
+    "threads": 1,
     "url": "s1.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -103,39 +82,42 @@
         "services": []
       }
     ],
+    "request_type_dependent_internal_service": true,
     "internal_service": {
-      "loader": {
-        "cpu_stress": {
-          "run": false,
-          "range_complexity": [
-            100,
-            100
-          ],
-          "thread_pool_size": 1,
-          "trials": 33
-        },
-        "memory_stress": {
-          "run": false,
-          "memory_size": 10000,
-          "memory_io": 1000
-        },
-        "disk_stress": {
-          "run": false,
-          "tmp_file_name": "mubtestfile.txt",
-          "disk_write_block_count": 1000,
-          "disk_write_block_size": 1024
-        },
-        "sleep_stress": {
-          "run": true,
-          "sleep_time": 0.01
-        },
-        "mean_bandwidth": 100,
-        "function_id": "f1"
+      "s1_intensive": {
+        "loader": {
+          "cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              120,
+              120
+            ],
+            "thread_pool_size": 1,
+            "trials": 15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "s3_intensive": {
+        "loader": {
+          "cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              150,
+              150
+            ],
+            "thread_pool_size": 1,
+            "trials": 15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
       }
     },
     "request_method": "rest",
-    "workers": 4,
-    "threads": 16,
+    "workers": 1,
+    "threads": 1,
     "url": "s2.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -149,39 +131,42 @@
         "services": []
       }
     ],
+    "request_type_dependent_internal_service": true,
     "internal_service": {
-      "loader": {
-        "cpu_stress": {
-          "run": false,
-          "range_complexity": [
-            100,
-            100
-          ],
-          "thread_pool_size": 1,
-          "trials": 33
-        },
-        "memory_stress": {
-          "run": false,
-          "memory_size": 10000,
-          "memory_io": 1000
-        },
-        "disk_stress": {
-          "run": false,
-          "tmp_file_name": "mubtestfile.txt",
-          "disk_write_block_count": 1000,
-          "disk_write_block_size": 1024
-        },
-        "sleep_stress": {
-          "run": true,
-          "sleep_time": 0.01
-        },
-        "mean_bandwidth": 100,
-        "function_id": "f1"
+      "s1_intensive": {
+        "loader": {
+          "cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              50,
+              50
+            ],
+            "thread_pool_size": 1,
+            "trials": 15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "s3_intensive": {
+        "loader": {
+          "cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              200,
+              200
+            ],
+            "thread_pool_size": 1,
+            "trials": 15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
       }
     },
     "request_method": "rest",
-    "workers": 4,
-    "threads": 16,
+    "workers": 1,
+    "threads": 1,
     "url": "s3.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",

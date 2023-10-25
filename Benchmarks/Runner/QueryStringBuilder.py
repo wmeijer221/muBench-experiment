@@ -5,49 +5,87 @@ Implements a number of header factories.
 import random
 import sys
 from typing import List
+import jsonmerge
 
 HEADER_PARAMETER_KEY = "HeaderParameters"
 
+from copy import deepcopy
 
 def build_header_factory_from_runner_parameters(runner_parameters: dict):
     """Factory method that uses Runner parameters."""
     if HEADER_PARAMETER_KEY not in runner_parameters:
-        return StaticHeaderFactory()
+        return EmptyHeaderFactory()
     query_params = runner_parameters[HEADER_PARAMETER_KEY]
-    return build_query_builder(query_params["type"], query_params["parameters"])
+
+    root = EmptyHeaderFactory()
+    for entry in query_params:
+        root = build_query_builder(entry["type"], entry["parameters"], root)
+    print(f'Built chain: {root.get_chain()}')
+    return root
 
 
-def build_query_builder(query_type: str, parameters: dict):
+def build_query_builder(
+    query_type: str, parameters: dict, inner_factory: "HeaderFactory"
+) -> "HeaderFactory":
     """Factory methat that uses explicit type."""
     print(f"Building query builder: {query_type}.")
     query_builder = getattr(sys.modules[__name__], query_type)
-    return query_builder(**parameters)
+    return query_builder(inner_factory=inner_factory, **parameters)
 
 
 class HeaderFactory:
-    """Base class for query string builders."""
+    """Base class for query string builders. Implements simple decorator pattern."""
+
+    def __init__(self, inner_factory: "HeaderFactory | None") -> None:
+        if inner_factory is None:
+            self._inner_factory = EmptyHeaderFactory()
+        else:
+            self._inner_factory = inner_factory
 
     def build_headers(self) -> dict:
         """Factory method for headers."""
         raise NotImplementedError()
 
+    def get_chain(self) -> str:
+        return f"{self.__class__.__name__}.{self._inner_factory.get_chain()}"
+
+
+class EmptyHeaderFactory(HeaderFactory):
+    """Returns empty header."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        """Empty init."""
+
+    def build_headers(self) -> dict:
+        return {}
+
+    def get_chain(self) -> str:
+        return self.__class__.__name__
+
 
 class StaticHeaderFactory(HeaderFactory):
     """Adds static headers."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, inner_factory: HeaderFactory, **kwargs) -> None:
+        super().__init__(inner_factory)
         self.__kwargs = kwargs
 
     def build_headers(self) -> dict:
-        return self.__kwargs
+        inner = self._inner_factory.build_headers()
+        return jsonmerge.merge(self.__kwargs, inner)
 
 
 class AggregatedHeaderFactory(HeaderFactory):
     """Builds header for aggregated request."""
 
     def __init__(
-        self, base_endpoint: str, endpoints: List[str], probabilities: List[float]
+        self,
+        inner_factory: HeaderFactory,
+        base_endpoint: str,
+        endpoints: List[str],
+        probabilities: List[float],
     ) -> None:
+        super().__init__(inner_factory)
         self.__base_endpoint = base_endpoint
         self.__endpoints = endpoints
         self.__probabilities = probabilities
@@ -59,8 +97,38 @@ class AggregatedHeaderFactory(HeaderFactory):
             if random.random() <= probability
         ]
         targets = ",".join(targets)
+
         header = {
-            "X-BaseEndpoint": self.__base_endpoint,
-            "X-AggregatedEndpoints": targets,
+            "x-baseendpoint": self.__base_endpoint,
+            "x-aggregatedendpoints": targets,
         }
-        return header
+
+        inner = self._inner_factory.build_headers()
+        return jsonmerge.merge(header, inner)
+
+
+class RequestTypeHeader(HeaderFactory):
+    """Builds header that specifies a message type."""
+
+    def __init__(
+        self,
+        inner_factory: HeaderFactory,
+        request_types: List[str],
+        probabilities: List[float],
+    ) -> None:
+        super().__init__(inner_factory)
+        assert len(request_types) == len(probabilities)
+        self.__request_types = request_types
+        self.__probabilities = probabilities
+
+    def build_headers(self) -> dict:
+        total_prob = sum(self.__probabilities)
+        rnd = random.random() * total_prob
+        prob_sum = 0
+        for req_type, prob in zip(self.__request_types, self.__probabilities):
+            if (rnd - prob_sum) < prob:
+                header = {"x-requesttype": req_type}
+                inner = self._inner_factory.build_headers()
+                return jsonmerge.merge(header, inner)
+            prob_sum += prob
+        raise ValueError("This should not be reached.")

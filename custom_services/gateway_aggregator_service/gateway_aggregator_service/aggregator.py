@@ -12,8 +12,8 @@ from fastapi import Request, HTTPException
 from k8s_helper import get_ips_on_k8s_node
 
 
-BASE_ENDPOINT_HEADER_KEY = "X-BaseEndpoint"
-AGGREGATED_ENDPOINT_HEADER_KEY = "X-AggregatedEndpoints"
+BASE_ENDPOINT_HEADER_KEY = "x-baseendpoint"
+AGGREGATED_ENDPOINT_HEADER_KEY = "x-aggregatedendpoints"
 
 ENDPOINT_CACHE: Dict[str, List[str]] = dict()
 
@@ -60,7 +60,12 @@ async def aggregate_requests(request: Request) -> List[bytes]:
         build_url(base_endpoint, target_endpoint)[0]
         for target_endpoint in target_endpoints
     ]
-    result = await get_many(target_urls)
+    print(request.headers)
+    forwarded_headers = {
+        key: value for key, value in request.headers.items() if key.lower().startswith("x-")
+    }
+    logger.info(f'{forwarded_headers=}')
+    result = await get_many(target_urls, forwarded_headers)
     return result
 
 
@@ -81,19 +86,21 @@ def get_aggregated_endpoints(request: Request) -> List[str]:
     return endpoints
 
 
-async def get_many(urls: List[str]) -> List[Any]:
+async def get_many(urls: List[str], forwarded_headers: Dict) -> List[Any]:
     """Performs multiple GET requests in parallel."""
     async with aiohttp.ClientSession() as session:
-        ret = await asyncio.gather(*[get(url, session) for url in urls])
+        ret = await asyncio.gather(
+            *[get(url, session, forwarded_headers) for url in urls]
+        )
     return ret
 
 
-async def get(url, session: aiohttp.ClientSession) -> bytes:
+async def get(url, session: aiohttp.ClientSession, forwarded_headers: Dict) -> bytes:
     """Makes GET request and returns the response."""
     try:
         msg = f'Making request to "{url}"'
         logger.info(msg)
-        async with session.get(url=url) as response:
+        async with session.get(url=url, headers=forwarded_headers) as response:
             resp = await response.read()
             if response.status / 100 == 2:
                 msg = f"Successfully got url {url} with resp of length {len(resp)}."
