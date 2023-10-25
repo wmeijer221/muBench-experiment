@@ -43,8 +43,8 @@
               180,
               180
             ],
-            "thread_pool_size": 1,
-            "trials": 15
+            "thread_pool_size": 16,
+            "trials": 20
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -58,8 +58,8 @@
               70,
               70
             ],
-            "thread_pool_size": 1,
-            "trials": 15
+            "thread_pool_size": 16,
+            "trials": 20
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -67,8 +67,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 1,
-    "threads": 1,
+    "workers": 16,
+    "threads": 32,
     "url": "s1.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -92,8 +92,8 @@
               120,
               120
             ],
-            "thread_pool_size": 1,
-            "trials": 15
+            "thread_pool_size": 16,
+            "trials": 20
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -107,8 +107,8 @@
               150,
               150
             ],
-            "thread_pool_size": 1,
-            "trials": 15
+            "thread_pool_size": 16,
+            "trials": 20
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -116,8 +116,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 1,
-    "threads": 1,
+    "workers": 16,
+    "threads": 32,
     "url": "s2.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -141,8 +141,8 @@
               50,
               50
             ],
-            "thread_pool_size": 1,
-            "trials": 15
+            "thread_pool_size": 16,
+            "trials": 20
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -156,8 +156,8 @@
               200,
               200
             ],
-            "thread_pool_size": 1,
-            "trials": 15
+            "thread_pool_size": 16,
+            "trials": 20
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -165,8 +165,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 1,
-    "threads": 1,
+    "workers": 16,
+    "threads": 32,
     "url": "s3.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",

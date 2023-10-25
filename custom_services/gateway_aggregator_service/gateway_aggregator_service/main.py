@@ -28,6 +28,7 @@ app.add_middleware(
 )
 
 
+@app.get("/api/v1")
 @app.get("/api/v1/")
 async def aggregate(request: Request):
     """Is called to aggregate."""

@@ -4,19 +4,21 @@ import argparse
 from os import remove
 from subprocess import Popen
 from typing import List, Tuple
-
+from copy import deepcopy
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def create_worker_params(experiment_idx: int):
+def create_worker_params(experiment_idx: int, base_worker_param: dict):
     """1: prepares the experiment."""
     step_size = 1.0 / args.simulation_steps
     s1_intensity = experiment_idx * step_size
 
-    experiment_params = BASE_WORKER_PARAM.format(
-        s1_intensity=s1_intensity, s3_intensity=1 - s1_intensity
-    )
+    experiment_params = deepcopy(base_worker_param)
+    experiment_params["RunnerParameters"]["HeaderParameters"][0]["parameters"][
+        "probabilities"
+    ] = [s1_intensity, 1 - s1_intensity]
 
     with open(
         args.temp_worker_param_path, mode="w+", encoding="utf-8"
@@ -24,7 +26,7 @@ def create_worker_params(experiment_idx: int):
         print(
             f"experiment-{experiment_idx + 1}/{args.simulation_steps + 1}: {s1_intensity=}, {temp_work_params.name=}"
         )
-        temp_work_params.write(experiment_params)
+        temp_work_params.write(json.dumps(experiment_params, indent=4))
         print(experiment_params)
 
 
@@ -65,11 +67,13 @@ def calculate_results(experiment_idx: int) -> Tuple:
 
 
 def visualize_results(experimental_results: List[Tuple]):
+    """Generates line diagrams with the results."""
     # Dummy data
     # experimental_results = [
-    #     (0.4, 63, 1129, 312.7676,143.06962078037392),
-    #     (0.6, 63, 1045, 295.2754, 133.2716202154082),
-    #     (0.8, 57,  1132,  296.3602, 140.70607256248752)
+    #     (0.0, 1032, 5194, 2403.3975, 1008.6441317401049),
+    #     (0.3333333333333333, 404, 3827, 1571.87, 669.5256067545139),
+    #     (0.6666666666666666, 604, 7421, 1900.1825, 1004.7100995778583),
+    #     (1.0, 787, 4137, 1875.055, 623.988887701536),
     # ]
 
     print(experimental_results)
@@ -107,12 +111,12 @@ def visualize_results(experimental_results: List[Tuple]):
     plt.savefig("./gssi_experiment/gateway_aggregator/figure.png")
 
 
-def main():
+def main(base_worker_param: dict):
     """Runs complete experiment."""
     experimental_results = []
 
     for i in range(args.simulation_steps + 1):
-        create_worker_params(i)
+        create_worker_params(i, base_worker_param)
         run_experiment()
         results = calculate_results(i)
         experimental_results.append(results)
@@ -141,88 +145,18 @@ parser.add_argument(
     default=5,
     help="The number of simulations that are performed w.r.t. S1 intensity.",
 )
+parser.add_argument(
+    "-r",
+    "--base-runner-params",
+    action="store",
+    dest="base_runner_param_file_name",
+    default="./gssi_experiment/gateway_aggregator/RunnerParameters.json",
+    help="The base file that is used to generate runner parameters.",
+)
 
 args = parser.parse_args()
 
-BASE_WORKER_PARAM = """{{
-   "RunnerParameters": {{
-      "ms_access_gateway": "http://192.168.49.2:31113",
-      "workload_files_path_list": [
-         "SimulationWorkspace/workload.json"
-      ],
-      "workload_rounds": 1,
-      "workload_type": "greedy",
-      "workload_events": 4000,
-      "thread_pool_size": 8,
-      "result_file": "result",
-      "ingress_service": "mubench-ingress",
-      "HeaderParameters": [
-            {{
-                "type": "RequestTypeHeader",
-                "parameters": {{
-                    "request_types": [
-                        "s1_intensive",
-                        "s3_intensive"
-                    ],
-                    "probabilities": [
-                        {s1_intensity},
-                        {s3_intensity}
-                    ]
-                }}
-            }},
-            {{
-                "type": "StaticHeaderFactory",
-                "parameters": {{
-                    "x-baseendpoint": "http://192.168.49.2:31113/",
-                    "x-aggregatedendpoints": "s1,s2,s3"
-                }}
-            }}
-        ]
-   }},
-   "OutputPath": "SimulationWorkspace/Result",
-   "_AfterWorkloadFunction": {{
-      "_comment": "remove _ from the object name to execute the funcions",
-      "file_path": "Function",
-      "function_name": "get_prometheus_stats"
-   }}
-}}"""
+with open(args.base_runner_param_file_name, "r", encoding="utf-8") as base_runner_file:
+    BASE_WORKER_PARAM: dict = json.loads(base_runner_file.read())
 
-# BASE_WORKER_PARAM = """{{
-#    "RunnerParameters": {{
-#       "ms_access_gateway": "http://192.168.49.2:31113",
-#       "workload_files_path_list": [
-#          "SimulationWorkspace/workload.json"
-#       ],
-#       "workload_rounds": 1,
-#       "workload_type": "greedy",
-#       "workload_events": 400,
-#       "thread_pool_size": 14,
-#       "result_file": "result",
-#       "ingress_service": "mubench-ingress",
-#       "HeaderParameters": [{{
-#          "type": "AggregatedHeaderFactory",
-#          "parameters": {{
-#             "base_endpoint": "http://192.168.49.2:31113/",
-#             "endpoints": [
-#                "s1",
-#                "s2",
-#                "s3"
-#             ],
-#             "probabilities": [
-#                {s1_intensity},
-#                1,
-#                {s3_intensity}
-#             ]
-#          }}
-#       }}
-#    }},
-#    "OutputPath": "SimulationWorkspace/Result",
-#    "_AfterWorkloadFunction": {{
-#       "_comment": "remove _ from the object name to execute the funcions",
-#       "file_path": "Function",
-#       "function_name": "get_prometheus_stats"
-#    }}
-# }}
-# """
-
-main()
+main(BASE_WORKER_PARAM)
