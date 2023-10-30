@@ -8,6 +8,7 @@ from copy import deepcopy
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
 
 
 def create_worker_params(experiment_idx: int, base_worker_param: dict):
@@ -36,10 +37,15 @@ def run_experiment():
         "./gssi_experiment/run-full-experiment.sh",
         "./gssi_experiment/gateway_aggregator/K8sParameters.json",
         args.temp_worker_param_path,
+        str(args.wait_for_pods_delay)
     ]
     print(popen_args)
     proc = Popen(popen_args)
-    proc.wait()
+    try:
+        proc.wait()
+    except KeyboardInterrupt as ex:
+        proc.kill()
+        raise ex
 
 
 def calculate_results(experiment_idx: int) -> Tuple:
@@ -126,16 +132,23 @@ def main(base_worker_param: dict):
     """Runs complete experiment."""
     experimental_results = []
 
+    start_time = datetime.datetime.now()
+
     for i in range(args.simulation_steps + 1):
         create_worker_params(i, base_worker_param)
         run_experiment()
         results = calculate_results(i)
         experimental_results.append(results)
+        print(f'{i=}: {results=}')
 
     visualize_results(experimental_results)
 
     # 5: cleanup
     remove(args.temp_worker_param_path)
+
+    end_time = datetime.datetime.now()
+    delta_time = end_time - start_time
+    print(f'Finished experiment in {str(delta_time)}.')
 
 
 parser = argparse.ArgumentParser()
@@ -163,6 +176,15 @@ parser.add_argument(
     dest="base_runner_param_file_name",
     default="./gssi_experiment/gateway_aggregator/RunnerParameters.json",
     help="The base file that is used to generate runner parameters.",
+)
+parser.add_argument(
+    '-w',
+    '--wait-for-pods',
+    action='store',
+    dest='wait_for_pods_delay',
+    type=int,
+    default=10,
+    help='The number of seconds that we will wait for pods to start.'
 )
 
 args = parser.parse_args()
