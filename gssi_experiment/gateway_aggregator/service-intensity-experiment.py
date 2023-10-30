@@ -93,21 +93,27 @@ def visualize_results(data: List[Tuple]):
 
     # First subplot with y_avg, y_min, and y_max lines, and filled area around y_avg
     axs[0].fill_between(s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label='std delay')
-    axs[0].plot(s1_intensity, y_avg, label='avg delay', color='b')
-    axs[0].plot(s1_intensity, y_min, label='min delay', color='g')
-    axs[0].plot(s1_intensity, y_max, label='max delay', color='r')
+    axs[0].plot(s1_intensity, y_avg, label='avg delay', color='g')
+    axs[0].plot(s1_intensity, y_min, label='min delay', color='b')
+    axs[0].plot(s1_intensity, y_max, label='max delay', color='orange')
     axs[0].set_title('All Data')
+    axs[0].set_ylabel("Delay (ms)")
+    axs[0].set_xlabel("S1 Intensity")
     axs[0].legend()
 
     # Second subplot with only y_avg line and filled area around it
     axs[1].fill_between(s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label='std delay')
-    axs[1].plot(s1_intensity, y_avg, label='avg delay', color='b')
-    axs[1].set_title('y_avg')
+    axs[1].plot(s1_intensity, y_avg, label='avg delay', color='g')
+    axs[1].set_title('Average Delay + Standard Deviation')
+    axs[1].set_ylabel("Delay (ms)")
+    axs[1].set_xlabel("S1 Intensity")
     axs[1].legend()
 
     # Third subplot with only y_avg line
-    axs[2].plot(s1_intensity, y_avg, label='avg delay', color='b')
+    axs[2].plot(s1_intensity, y_avg, label='avg delay', color='g')
     axs[2].set_title('Average Delay')
+    axs[2].set_ylabel("Delay (ms)")
+    axs[2].set_xlabel("S1 Intensity")
     axs[2].legend()
 
     # Add labels and title to the overall figure
