@@ -66,48 +66,53 @@ def calculate_results(experiment_idx: int) -> Tuple:
         return results
 
 
-def visualize_results(experimental_results: List[Tuple]):
+def visualize_results(data: List[Tuple]):
     """Generates line diagrams with the results."""
     # Dummy data
-    # experimental_results = [
-    #     (0.0, 1032, 5194, 2403.3975, 1008.6441317401049),
-    #     (0.3333333333333333, 404, 3827, 1571.87, 669.5256067545139),
-    #     (0.6666666666666666, 604, 7421, 1900.1825, 1004.7100995778583),
-    #     (1.0, 787, 4137, 1875.055, 623.988887701536),
+    # data = [
+    #     (0.0, 44, 2801, 732.7795, 376.3061684051299),
+    #     (0.125, 32, 2280, 514.15125, 310.8390481799825),
+    #     (0.25, 46, 1223, 469.7725, 200.9019991034186),
+    #     (0.375, 39, 1382, 453.0955, 251.3497958617631),
+    #     (0.5, 34, 1809, 482.2435, 360.3545264149598),
+    #     (0.625, 26, 1410, 455.01425, 335.3215248786417),
+    #     (0.75, 24, 1389, 458.08675, 194.46708776663854),
+    #     (0.875, 40, 1987, 606.1655, 289.84179324202023),
+    #     (1.0, 40, 1423, 613.5745, 270.3258107353976),
     # ]
 
-    print(experimental_results)
+    # Extract data
+    s1_intensity, y_min, y_max, y_avg, y_std = zip(*data)
 
-    # 4: plots the results
-    x = [point[0] for point in experimental_results]
-    y_min = [point[1] for point in experimental_results]
-    y_max = [point[2] for point in experimental_results]
-    y_avg = [point[3] for point in experimental_results]
-    std_dev = [point[4] for point in experimental_results]
+    # Calculate y_std_upper and y_std_lower
+    y_std_upper = tuple((e + f for e, f in zip(y_avg, y_std)))
+    y_std_lower = tuple((e - f for e, f in zip(y_avg, y_std)))
 
-    # Creating the line chart
-    plt.figure(figsize=(10, 6))
-    plt.plot(x, y_min, label="Min")
-    plt.plot(x, y_max, label="Max")
-    plt.plot(x, y_avg, label="Average")
+    # Create a figure with three subplots
+    fig, axs = plt.subplots(3, 1, figsize=(8, 12))
 
-    # Creating the area around the average line for the standard deviation
-    plt.fill_between(
-        x,
-        np.subtract(y_avg, std_dev),
-        np.add(y_avg, std_dev),
-        color="b",
-        alpha=0.2,
-        label="Standard Deviation",
-    )
+    # First subplot with y_avg, y_min, and y_max lines, and filled area around y_avg
+    axs[0].fill_between(s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label='std delay')
+    axs[0].plot(s1_intensity, y_avg, label='avg delay', color='b')
+    axs[0].plot(s1_intensity, y_min, label='min delay', color='g')
+    axs[0].plot(s1_intensity, y_max, label='max delay', color='r')
+    axs[0].set_title('All Data')
+    axs[0].legend()
 
-    # Adding labels and title
-    plt.xlabel("S1 Intensity")
-    plt.ylabel("Delay (ms)")
-    plt.title("Differences in delay for different values of S1 Intensity.")
-    plt.legend()
-    plt.grid(True)
-    # plt.show()
+    # Second subplot with only y_avg line and filled area around it
+    axs[1].fill_between(s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label='std delay')
+    axs[1].plot(s1_intensity, y_avg, label='avg delay', color='b')
+    axs[1].set_title('y_avg')
+    axs[1].legend()
+
+    # Third subplot with only y_avg line
+    axs[2].plot(s1_intensity, y_avg, label='avg delay', color='b')
+    axs[2].set_title('Average Delay')
+    axs[2].legend()
+
+    # Add labels and title to the overall figure
+    fig.suptitle('S1 Intensity vs. Request Delay')
+    plt.tight_layout()
     plt.savefig("./gssi_experiment/gateway_aggregator/figure.png")
 
 
