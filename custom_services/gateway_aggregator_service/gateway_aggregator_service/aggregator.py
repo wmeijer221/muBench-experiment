@@ -4,6 +4,7 @@ Implements simple message aggregator.
 
 import logging
 from typing import List, Any, Dict
+import random
 
 import asyncio
 import aiohttp
@@ -56,12 +57,13 @@ async def aggregate_requests(request: Request) -> List[bytes]:
             status_code=400, detail=f"Invalid headers: {ex.__cause__}."
         ) from ex
     target_urls = [
-        # TODO: Should implement e.g. RR instead of grabbing the first element.
-        build_url(base_endpoint, target_endpoint)[0]
+        random.choice(build_url(base_endpoint, target_endpoint))
         for target_endpoint in target_endpoints
     ]
     forwarded_headers = {
-        key: value for key, value in request.headers.items() if key.lower().startswith("x-")
+        key: value
+        for key, value in request.headers.items()
+        if key.lower().startswith("x-")
     }
     result = await get_many(target_urls, forwarded_headers)
     return result
