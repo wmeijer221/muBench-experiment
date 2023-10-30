@@ -89,18 +89,14 @@ metadata:
   labels:
     app: s1
 spec:
-  type: LoadBalancer
-  selector:
-    app: s1
+  type: NodePort
   ports:
   - port: 80
     targetPort: 8080
     nodePort:
     name: http-mubserviceport
-    type: loadBalancer
   - port: 51313
     targetPort: 51313
     name: grpc-mubserviceport
-      type: loadBalancer
   selector:
     app: s1

@@ -89,18 +89,14 @@ metadata:
   labels:
     app: mubench-ingress
 spec:
-  type: LoadBalancer
-  selector:
-    app: mubench-ingress
+  type: NodePort
   ports:
   - port: 80
     targetPort: 8080
     nodePort:
     name: http-mubserviceport
-    type: loadBalancer
   - port: 51313
     targetPort: 51313
     name: grpc-mubserviceport
-      type: loadBalancer
   selector:
     app: mubench-ingress
