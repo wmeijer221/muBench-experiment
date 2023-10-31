@@ -27,3 +27,5 @@ It stands out that during the second iteration of the experiment, S1 delays star
 The final experiment, ``d``, was executed with 8000 requests per iteration, and shows the U curve as well as the expected increasing delays for the different request types.
 
 ## Experimental variant 3: large in-memory joins
+
+

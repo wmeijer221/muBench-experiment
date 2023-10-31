@@ -6,7 +6,7 @@
       ],
       "workload_rounds": 1,
       "workload_type": "greedy",
-      "workload_events": 8000,
+      "workload_events": 1000,
       "thread_pool_size": 16,
       "result_file": "result",
       "ingress_service": "mubench-ingress",
