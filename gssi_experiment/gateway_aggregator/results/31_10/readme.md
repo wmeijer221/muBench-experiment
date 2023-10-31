@@ -24,4 +24,6 @@ As expected, the complete picture is more or less a combination of the two.
 
 It stands out that during the second iteration of the experiment, S1 delays start very high as well; i.e., with few S1 requests, the delay is very high; this wholly contradicts expectations and the previous results. In this scenario, however, the S3 request charts show an linear-like decrease in delay as they become less frequent, which was not as present in during the previous experiment.
 
+The final experiment, ``d``, was executed with 8000 requests per iteration, and shows the U curve as well as the expected increasing delays for the different request types.
+
 ## Experimental variant 3: large in-memory joins
