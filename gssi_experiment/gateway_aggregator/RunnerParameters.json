@@ -6,13 +6,13 @@
       ],
       "workload_rounds": 1,
       "workload_type": "greedy",
-      "workload_events": 4000,
+      "workload_events": 8000,
       "thread_pool_size": 16,
       "result_file": "result",
       "ingress_service": "mubench-ingress",
       "HeaderParameters": [
             {
-                "type": "RequestTypeHeader",
+                "type": "RequestTypeHeaderFactory",
                 "parameters": {
                     "request_types": [
                         "s1_intensive",

@@ -3,12 +3,13 @@
 import argparse
 from os import remove
 from subprocess import Popen
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from copy import deepcopy
 import json
 import matplotlib.pyplot as plt
 import numpy as np
 import datetime
+from PIL import Image
 
 
 def create_worker_params(experiment_idx: int, base_worker_param: dict):
@@ -48,31 +49,104 @@ def run_experiment():
         raise ex
 
 
-def calculate_results(experiment_idx: int) -> Tuple:
+def calculate_results(experiment_idx: int) -> Dict[str, Tuple]:
     """3: processes the results."""
 
     step_size = 1.0 / args.simulation_steps
     s1_intensity = experiment_idx * step_size
 
+    all_data_key = "all"
+
     with open(
         "./SimulationWorkspace/Result/result.txt", "r", encoding="utf-8"
     ) as results_file:
+        delays_per_group = {all_data_key: []}
         delays = []
         for entry in results_file:
             elements = entry.split()
             delay = int(elements[1])
-            delays.append(delay)
-        mn = np.min(delays)
-        mx = np.max(delays)
-        avg = np.average(delays)
-        std = np.std(delays)
-
-        print(f"{s1_intensity=}: {mn=}, {mx=}, {avg=}, {std=}")
-        results = (s1_intensity, mn, mx, avg, std)
+            delays_per_group[all_data_key].append(delay)
+            # splits my message type
+            message_type = list(
+                [ele for ele in elements if ele.startswith('"x-requesttype:')]
+            )[0]
+            message_type = message_type[1:-1].split(":")[1]
+            if message_type not in delays_per_group:
+                delays_per_group[message_type] = []
+            delays_per_group[message_type].append(delay)
+        # Calculates basic stats.
+        results = {}
+        for key, delays in delays_per_group.items():
+            mn = np.min(delays)
+            mx = np.max(delays)
+            avg = np.average(delays)
+            std = np.std(delays)
+            results[key] = (s1_intensity, mn, mx, avg, std)
+            print(f"{s1_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
         return results
 
 
-def visualize_results(data: List[Tuple]):
+def visualize_all_results(data: List[Dict[str, Tuple]]) -> List[str]:
+    """Generates plots for each data type."""
+    # Dummy data
+    # data = [
+    #     {
+    #         "all": (0.0, 357, 1845, 914.93, 420.83691033463305),
+    #         "s3_intensive": (0.0, 357, 1845, 914.93, 420.83691033463305),
+    #     },
+    #     {
+    #         "all": (0.3333333333333333, 166, 1309, 570.61, 270.60383940365665),
+    #         "s1_intensive": (
+    #             0.3333333333333333,
+    #             166,
+    #             1215,
+    #             572.1142857142858,
+    #             309.6711409062912,
+    #         ),
+    #         "s3_intensive": (0.3333333333333333, 188, 1309, 569.8, 247.01773215702553),
+    #     },
+    #     {
+    #         "all": (0.6666666666666666, 163, 1603, 717.14, 320.8091650810494),
+    #         "s1_intensive": (
+    #             0.6666666666666666,
+    #             163,
+    #             1472,
+    #             700.6716417910447,
+    #             299.40849089445106,
+    #         ),
+    #         "s3_intensive": (
+    #             0.6666666666666666,
+    #             190,
+    #             1603,
+    #             750.5757575757576,
+    #             358.0479086195733,
+    #         ),
+    #     },
+    #     {
+    #         "all": (1.0, 261, 1445, 659.22, 322.52617196128443),
+    #         "s1_intensive": (1.0, 261, 1445, 659.22, 322.52617196128443),
+    #     },
+    # ]
+    # Collects relevant keys
+    keys = set()
+    for ele in data:
+        for key in ele:
+            keys.add(key)
+    # visualizes data for each key.
+    fig_names = []
+    for key in keys:
+        key_data = []
+        for ele in data:
+            if not key in ele:
+                continue
+            dpoint = ele[key]
+            key_data.append(dpoint)
+        fig_name = visualize_results(key_data, output_file_name=key)
+        fig_names.append(fig_name)
+    return fig_names
+
+
+def visualize_results(data: List[Tuple], output_file_name) -> str:
     """Generates line diagrams with the results."""
     # Dummy data
     # data = [
@@ -127,13 +201,46 @@ def visualize_results(data: List[Tuple]):
     axs[2].legend()
 
     # Add labels and title to the overall figure
-    fig.suptitle("S1 Intensity vs. Request Delay")
+    fig.suptitle(f"S1 Intensity vs. Request Delay ({output_file_name})")
     plt.tight_layout()
-    plt.savefig("./gssi_experiment/gateway_aggregator/figure.png")
+    fig_name = f"./gssi_experiment/gateway_aggregator/figure_{output_file_name}.png"
+    plt.savefig(fig_name)
+    return fig_name
 
 
-def measure_correlation_with_pincirroli(data: List[Tuple]) -> float:
-    pass
+def stitch_figures(image_paths: List[str]):
+    """Stitches multiple figures together horizontally."""
+    # sorts image path names.
+    image_paths = sorted(image_paths)
+
+    # Open and load all the images
+    images = [Image.open(image_path) for image_path in image_paths]
+
+    # Get the widths and heights of all images
+    widths, heights = zip(*(i.size for i in images))
+
+    # Calculate the total width and height for the new image
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    # Create a new image with the calculated size
+    new_image = Image.new("RGB", (total_width, max_height))
+
+    # Paste the images horizontally
+    x_offset = 0
+    for image in images:
+        new_image.paste(image, (x_offset, 0))
+        x_offset += image.width
+
+    # Save the resulting image
+    output_file_name = "./gssi_experiment/gateway_aggregator/figure.png"
+    new_image.save(output_file_name)
+
+    # Close the images
+    for image in images:
+        image.close()
+
+    print(f"Images stitched and saved as '{output_file_name}'.")
 
 
 def main(base_worker_param: dict):
@@ -142,6 +249,7 @@ def main(base_worker_param: dict):
 
     start_time = datetime.datetime.now()
 
+    # executes experiments.
     for i in range(args.simulation_steps + 1):
         create_worker_params(i, base_worker_param)
         run_experiment()
@@ -149,11 +257,15 @@ def main(base_worker_param: dict):
         experimental_results.append(results)
         print(f"{i=}: {results=}")
 
-    visualize_results(experimental_results)
-    measure_correlation_with_pincirroli(experimental_results)
+    # visualizes results.
+    print(experimental_results)
+    fig_names = visualize_all_results(experimental_results)
+    stitch_figures(fig_names)
 
     # 5: cleanup
     remove(args.temp_worker_param_path)
+    for fig_name in fig_names:
+        remove(fig_name)
 
     end_time = datetime.datetime.now()
     delta_time = end_time - start_time

@@ -9,26 +9,26 @@ import jsonmerge
 
 HEADER_PARAMETER_KEY = "HeaderParameters"
 
-from copy import deepcopy
 
-def build_header_factory_from_runner_parameters(runner_parameters: dict):
+def build_header_factory_from_runner_parameters(
+    runner_parameters: dict,
+) -> "HeaderFactory":
     """Factory method that uses Runner parameters."""
     if HEADER_PARAMETER_KEY not in runner_parameters:
         return EmptyHeaderFactory()
-    query_params = runner_parameters[HEADER_PARAMETER_KEY]
-
+    # Builds factory chain by iteratively decorating the root.
     root = EmptyHeaderFactory()
+    query_params = runner_parameters[HEADER_PARAMETER_KEY]
     for entry in query_params:
-        root = build_query_builder(entry["type"], entry["parameters"], root)
-    print(f'Built chain: {root.get_chain()}')
+        root = build_header_factory(entry["type"], entry["parameters"], root)
+    print(f"Built header factory chain: {root.get_chain()}")
     return root
 
 
-def build_query_builder(
+def build_header_factory(
     query_type: str, parameters: dict, inner_factory: "HeaderFactory"
 ) -> "HeaderFactory":
     """Factory methat that uses explicit type."""
-    print(f"Building query builder: {query_type}.")
     query_builder = getattr(sys.modules[__name__], query_type)
     return query_builder(inner_factory=inner_factory, **parameters)
 
@@ -107,7 +107,7 @@ class AggregatedHeaderFactory(HeaderFactory):
         return jsonmerge.merge(header, inner)
 
 
-class RequestTypeHeader(HeaderFactory):
+class RequestTypeHeaderFactory(HeaderFactory):
     """Builds header that specifies a message type."""
 
     def __init__(

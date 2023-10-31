@@ -9,6 +9,7 @@ import json
 import sys
 import os
 import shutil
+from typing import Any, List
 import importlib
 from pprint import pprint
 
@@ -37,9 +38,8 @@ class Counter(object):
         finally:
             self.lock.release()
 
-def do_requests(
-    event, stats, local_latency_stats, query_builder: qsb.HeaderFactory
-):
+
+def do_requests(event, stats, local_latency_stats, query_builder: qsb.HeaderFactory):
     global processed_requests, last_print_time_ms, error_requests, pending_requests
     # pprint(workload[event]["services"])
     # for services in event["services"]:
@@ -51,8 +51,8 @@ def do_requests(
             pending_requests.increase()
 
         req_url = f"{ms_access_gateway}/{event['service']}"
-        header = query_builder.build_headers()
-        r = requests.get(req_url, headers=header)
+        headers = query_builder.build_headers()
+        r = requests.get(req_url, headers=headers)
         pending_requests.decrease()
 
         if r.status_code != 200:
@@ -60,9 +60,17 @@ def do_requests(
             error_requests.increase()
 
         req_latency_ms = int(r.elapsed.total_seconds() * 1000)
-        stats.append(
-            f"{now_ms} \t {req_latency_ms} \t {r.status_code} \t {processed_requests.value} \t {pending_requests.value}"
-        )
+        req_stats = [
+            now_ms,
+            req_latency_ms,
+            r.status_code,
+            processed_requests.value,
+            pending_requests.value,
+        ]
+        req_stats = list([str(e) for e in req_stats])
+        req_stats.extend([f'"{key}:{value}"' for key, value in headers.items()])
+        stats_output = " \t ".join(req_stats)
+        stats.append(stats_output)
         local_latency_stats.append(req_latency_ms)
 
         if now_ms > last_print_time_ms + 1_000:
@@ -170,7 +178,7 @@ def file_runner(workload=None):
 def greedy_runner():
     global start_time, stats, local_latency_stats, runner_parameters, header_builder
 
-    print(f'{runner_parameters=}')
+    print(f"{runner_parameters=}")
 
     if "ingress_service" in runner_parameters.keys():
         srv = runner_parameters["ingress_service"]

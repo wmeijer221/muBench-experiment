@@ -69,7 +69,7 @@ The main idea here is to minimally restrict services, while maximally test them.
 
 ## Experimental Variant 4: Sleep instead of analogous CPU load
 
-
+more or less the same curve. The minimum curve is much more diverse here.
 
 # experimental setup
 
