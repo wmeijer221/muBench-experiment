@@ -6,7 +6,6 @@ import logging
 import os
 
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 
 import aggregator
 
@@ -19,18 +18,10 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://0.0.0.0:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/api/v1")
-@app.get("/api/v1/")
+@app.get("/api/v1", status_code=200)
+@app.get("/api/v1/", status_code=200)
 async def aggregate(request: Request):
     """Is called to aggregate."""
-    result = await aggregator.aggregate_requests(request)
+    # TODO: the second return value should be respected such that a HTTP 206 response is returned. However, muBench doesn't work with non-200 HTTP codes and immediately yields an 500 status code in non-200 cases.
+    result, _ = await aggregator.aggregate_requests(request)
     return result

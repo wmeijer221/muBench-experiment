@@ -3,7 +3,7 @@ Implements simple message aggregator.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import random
 
 import asyncio
@@ -48,7 +48,7 @@ def get_endpoint_options(base_endpoint: str, target_endpoint: str) -> List[str]:
     return ENDPOINT_CACHE[target_endpoint]
 
 
-async def aggregate_requests(request: Request) -> List[bytes]:
+async def aggregate_requests(request: Request) -> Tuple[List[bytes], bool]:
     """Performs the requests in parallel and aggregates their results."""
     try:
         base_endpoint = get_base_endpoint(request)
@@ -69,8 +69,8 @@ async def aggregate_requests(request: Request) -> List[bytes]:
         for key, value in request.headers.items()
         if key.lower().startswith("x-")
     }
-    result = await get_many(target_urls, forwarded_headers)
-    return result
+    result, is_complete_success = await get_many(target_urls, forwarded_headers)
+    return result, is_complete_success
 
 
 def is_executed_sequentially(request: Request) -> bool:
@@ -101,32 +101,37 @@ async def get_many_parallel(urls: List[str], forwarded_headers: Dict) -> List[An
         ret = await asyncio.gather(
             *[get(url, session, forwarded_headers) for url in urls]
         )
-    return ret
+    is_complete_success= all(res[1] for res in ret)
+    ret = list([res[0] for res in ret])
+    return ret, is_complete_success
 
 
-async def get_many_sequential(urls: List[str], forwarded_headers: Dict) -> List[Any]:
+async def get_many_sequential(urls: List[str], forwarded_headers: Dict) -> Tuple[List[Any], bool]:
     """Performs multiple GET requests sequentially."""
     ret = [None] * len(urls)
+    is_complete_success = True
     async with aiohttp.ClientSession() as session:
         for i, url in enumerate(urls):
-            ret[i] = await get(url, session, forwarded_headers)
-    return ret
+            ret[i], is_success = await get(url, session, forwarded_headers)
+            is_complete_success = is_success and is_complete_success
+    return ret, is_complete_success
 
 
-async def get(url, session: aiohttp.ClientSession, forwarded_headers: Dict) -> bytes:
+async def get(
+    url, session: aiohttp.ClientSession, forwarded_headers: Dict
+) -> Tuple[bytes, bool]:
     """Makes GET request and returns the response."""
     try:
-        msg = f'Making request to "{url}"'
-        logger.info(msg)
         async with session.get(url=url, headers=forwarded_headers) as response:
             resp = await response.read()
-            if response.status / 100 == 2:
-                msg = f"Successfully got url {url} with resp of length {len(resp)}."
+            is_success = response.status / 100 == 2
+            if is_success:
+                msg = f'Successfully got url "{url}" with resp of length {len(resp)}.'
                 logger.info(msg)
             else:
-                msg = f"Failed request to url {url} with statuscode {response.status}."
+                msg = f'Failed request to url "{url}" with status {response.status}.'
                 logger.warning(msg)
-            return resp
+            return resp, is_success
     except Exception as e:
         print(f"Unable to get url {url} due to {e.__class__}.")
         raise e
