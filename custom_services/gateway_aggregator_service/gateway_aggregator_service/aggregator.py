@@ -3,7 +3,7 @@ Implements simple message aggregator.
 """
 
 import logging
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 import random
 
 import asyncio
@@ -15,13 +15,14 @@ from k8s_helper import get_ips_on_k8s_node
 
 BASE_ENDPOINT_HEADER_KEY = "x-baseendpoint"
 AGGREGATED_ENDPOINT_HEADER_KEY = "x-aggregatedendpoints"
+EXECUTE_SEQUENTIALLY_HEADER_KEY = "x-aggregatesequentially"
 
 ENDPOINT_CACHE: Dict[str, List[str]] = dict()
 
 logger = logging.getLogger(__name__)
 
 
-def build_url(base_endpoint: str, target_endpoint: str) -> str:
+def get_endpoint_options(base_endpoint: str, target_endpoint: str) -> List[str]:
     """
     Factory method for URLs for the provided target endpoints.
     If the pod corresponding to one of the endpoins is hosted on the
@@ -57,9 +58,12 @@ async def aggregate_requests(request: Request) -> List[bytes]:
             status_code=400, detail=f"Invalid headers: {ex.__cause__}."
         ) from ex
     target_urls = [
-        random.choice(build_url(base_endpoint, target_endpoint))
+        random.choice(get_endpoint_options(base_endpoint, target_endpoint))
         for target_endpoint in target_endpoints
     ]
+    get_many = (
+        get_many_sequential if is_executed_sequentially(request) else get_many_parallel
+    )
     forwarded_headers = {
         key: value
         for key, value in request.headers.items()
@@ -67,6 +71,11 @@ async def aggregate_requests(request: Request) -> List[bytes]:
     }
     result = await get_many(target_urls, forwarded_headers)
     return result
+
+
+def is_executed_sequentially(request: Request) -> bool:
+    """Returns true if the request should be executed sequentially."""
+    return bool(request.headers.get(EXECUTE_SEQUENTIALLY_HEADER_KEY, False))
 
 
 def get_base_endpoint(request: Request) -> str:
@@ -86,12 +95,21 @@ def get_aggregated_endpoints(request: Request) -> List[str]:
     return endpoints
 
 
-async def get_many(urls: List[str], forwarded_headers: Dict) -> List[Any]:
+async def get_many_parallel(urls: List[str], forwarded_headers: Dict) -> List[Any]:
     """Performs multiple GET requests in parallel."""
     async with aiohttp.ClientSession() as session:
         ret = await asyncio.gather(
             *[get(url, session, forwarded_headers) for url in urls]
         )
+    return ret
+
+
+async def get_many_sequential(urls: List[str], forwarded_headers: Dict) -> List[Any]:
+    """Performs multiple GET requests sequentially."""
+    ret = [None] * len(urls)
+    async with aiohttp.ClientSession() as session:
+        for i, url in enumerate(urls):
+            ret[i] = await get(url, session, forwarded_headers)
     return ret
 
 

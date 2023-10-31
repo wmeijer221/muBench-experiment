@@ -28,7 +28,8 @@
                 "type": "StaticHeaderFactory",
                 "parameters": {
                     "x-baseendpoint": "http://192.168.49.2:31113/",
-                    "x-aggregatedendpoints": "s1,s2,s3"
+                    "x-aggregatedendpoints": "s1,s2,s3",
+                    "x-aggregatesequentially": "false"
                 }
             }
         ]

@@ -37,7 +37,7 @@ def run_experiment():
         "./gssi_experiment/run-full-experiment.sh",
         "./gssi_experiment/gateway_aggregator/K8sParameters.json",
         args.temp_worker_param_path,
-        str(args.wait_for_pods_delay)
+        str(args.wait_for_pods_delay),
     ]
     print(popen_args)
     proc = Popen(popen_args)
@@ -98,34 +98,42 @@ def visualize_results(data: List[Tuple]):
     fig, axs = plt.subplots(3, 1, figsize=(8, 12))
 
     # First subplot with y_avg, y_min, and y_max lines, and filled area around y_avg
-    axs[0].fill_between(s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label='std delay')
-    axs[0].plot(s1_intensity, y_avg, label='avg delay', color='g')
-    axs[0].plot(s1_intensity, y_min, label='min delay', color='b')
-    axs[0].plot(s1_intensity, y_max, label='max delay', color='orange')
-    axs[0].set_title('All Data')
+    axs[0].fill_between(
+        s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label="std delay"
+    )
+    axs[0].plot(s1_intensity, y_avg, label="avg delay", color="g")
+    axs[0].plot(s1_intensity, y_min, label="min delay", color="b")
+    axs[0].plot(s1_intensity, y_max, label="max delay", color="orange")
+    axs[0].set_title("All Data")
     axs[0].set_ylabel("Delay (ms)")
     axs[0].set_xlabel("S1 Intensity")
     axs[0].legend()
 
     # Second subplot with only y_avg line and filled area around it
-    axs[1].fill_between(s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label='std delay')
-    axs[1].plot(s1_intensity, y_avg, label='avg delay', color='g')
-    axs[1].set_title('Average Delay + Standard Deviation')
+    axs[1].fill_between(
+        s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label="std delay"
+    )
+    axs[1].plot(s1_intensity, y_avg, label="avg delay", color="g")
+    axs[1].set_title("Average Delay + Standard Deviation")
     axs[1].set_ylabel("Delay (ms)")
     axs[1].set_xlabel("S1 Intensity")
     axs[1].legend()
 
     # Third subplot with only y_avg line
-    axs[2].plot(s1_intensity, y_avg, label='avg delay', color='g')
-    axs[2].set_title('Average Delay')
+    axs[2].plot(s1_intensity, y_avg, label="avg delay", color="g")
+    axs[2].set_title("Average Delay")
     axs[2].set_ylabel("Delay (ms)")
     axs[2].set_xlabel("S1 Intensity")
     axs[2].legend()
 
     # Add labels and title to the overall figure
-    fig.suptitle('S1 Intensity vs. Request Delay')
+    fig.suptitle("S1 Intensity vs. Request Delay")
     plt.tight_layout()
     plt.savefig("./gssi_experiment/gateway_aggregator/figure.png")
+
+
+def measure_correlation_with_pincirroli(data: List[Tuple]) -> float:
+    pass
 
 
 def main(base_worker_param: dict):
@@ -139,16 +147,17 @@ def main(base_worker_param: dict):
         run_experiment()
         results = calculate_results(i)
         experimental_results.append(results)
-        print(f'{i=}: {results=}')
+        print(f"{i=}: {results=}")
 
     visualize_results(experimental_results)
+    measure_correlation_with_pincirroli(experimental_results)
 
     # 5: cleanup
     remove(args.temp_worker_param_path)
 
     end_time = datetime.datetime.now()
     delta_time = end_time - start_time
-    print(f'Finished experiment in {str(delta_time)}.')
+    print(f"Finished experiment in {str(delta_time)}.")
 
 
 parser = argparse.ArgumentParser()
@@ -178,13 +187,13 @@ parser.add_argument(
     help="The base file that is used to generate runner parameters.",
 )
 parser.add_argument(
-    '-w',
-    '--wait-for-pods',
-    action='store',
-    dest='wait_for_pods_delay',
+    "-w",
+    "--wait-for-pods",
+    action="store",
+    dest="wait_for_pods_delay",
     type=int,
     default=10,
-    help='The number of seconds that we will wait for pods to start.'
+    help="The number of seconds that we will wait for pods to start.",
 )
 
 args = parser.parse_args()

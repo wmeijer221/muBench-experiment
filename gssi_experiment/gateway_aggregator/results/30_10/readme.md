@@ -39,6 +39,38 @@ Contrary to what was initially expected, the theoretical model is most likely co
 
 ## Experimental variant 2: Increased loads.
 
+Test the impact on the U curve when using different loads (i.e., higher and lower than the baseline).
+The baseline is measured using unreplicated services with `2000m` CPU time.
+The load used is analogous to Pincirolli's, using 20 trials.
+
+### Variant A: 40 (=2x20) trials
+
+Shows the same curve but with higher delays.
+
+### Variant B: 80 (=4x20) trials.
+
+Shows a curve still, and the U-shape is as obvious as before.
+
+### Variant C: 160 (=8x20) trials
+
+Shows the curve still, and the curve is as obvious as before.
+
+### Variant D: 1 trial
+
+The curve is not present at all. This suggests that the theoretical model as presented does not capture the case of very undersaturated CPUs.
+
+### Variant E: 10 trials
+
+The curve is present again.
+
+## Experimental variant 3: Increased load and resources
+
+The main idea here is to minimally restrict services, while maximally test them.
+
+## Experimental Variant 4: Sleep instead of analogous CPU load
+
+
+
 # experimental setup
 
 Commodity machine.
@@ -46,3 +78,5 @@ Commodity machine.
 # Conclusions
 
 The baseline results show a more or less similar U shape, albeit with some noise around the curve's expected peak.
+
+Both the amount of compute resources and the load size are minimally related to the theoretical model's results. The U-shape is still present in both of them. However, 
