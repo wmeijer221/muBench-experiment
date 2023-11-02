@@ -1,4 +1,8 @@
-from typing import Any, Collection, Iterator, Dict, Tuple, List
+"""
+Implements some helper functions for dealing with json data.
+"""
+
+from typing import Any, Collection, Iterator, Tuple
 import json
 
 
@@ -37,7 +41,7 @@ def write_concrete_json_document(
     Loads data from the source file, overwrites its
     specified fields, and outputs it to the output file.
     """
-    print(f'{source_path=}')
+    print(f"{source_path=}")
     # Loads data from input path.
     with open(source_path, "r", encoding="utf-8") as source_file:
         json_doc = json.loads(source_file.read())

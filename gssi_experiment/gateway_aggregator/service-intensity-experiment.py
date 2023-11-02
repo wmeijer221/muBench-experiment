@@ -1,7 +1,6 @@
 """Runs service intensity experiment and outputs results."""
 
 import argparse
-from os import remove
 import datetime
 import os
 
@@ -59,12 +58,11 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def create_worker_params(experiment_idx: int) -> None:
+def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
     """1: prepares the experiment."""
     step_size = 1.0 / args.simulation_steps
     s1_intensity = experiment_idx * step_size
 
-    # TODO: don't grab this from args.
     json_helper.write_concrete_json_document(
         source_path=args.base_runner_param_file_name,
         target_path=args.tmp_runner_param_file_path,
@@ -77,7 +75,7 @@ def create_worker_params(experiment_idx: int) -> None:
                     "parameters",
                     "probabilities",
                 ],
-                [s1_intensity, 1 - s1_intensity],
+                [s1_intensity, 1.0 - s1_intensity],
             )
         ],
     )
@@ -87,27 +85,27 @@ def create_worker_params(experiment_idx: int) -> None:
 
 start_time = datetime.datetime.now()
 
-# executes experiments.
+# Executes experiments.
 experimental_results = []
 for i in range(args.simulation_steps + 1):
-    create_worker_params(i)
+    write_tmp_runner_params_for_simulation_step(i)
     exp_helper.run_experiment(
         args.k8s_param_path,
         args.tmp_runner_param_file_path,
         args.wait_for_pods_delay,
     )
-    results = exp_helper.calculate_results(i, args.simulation_steps)
+    results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)
     experimental_results.append(results)
     print(f"{i=}: {results=}")
 
-# visualizes results.
+# Visualizes results.
 print(experimental_results)
-exp_helper.visualize_all_and_stitch(
-    experimental_results, output_file_directory=BASE_FOLDER
+exp_helper.visualize_all_data_and_stitch(
+    experimental_results, output_file_directory=f"{BASE_FOLDER}/results/"
 )
 
-# 5: cleanup
-remove(args.tmp_runner_param_file_path)
+# Clean up temp files.
+os.remove(args.tmp_runner_param_file_path)
 
 end_time = datetime.datetime.now()
 delta_time = end_time - start_time

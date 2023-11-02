@@ -1,8 +1,12 @@
+"""
+Implements some reusable functionality for experimentation.
+"""
+
 import os
 from subprocess import Popen
 from typing import Dict, Tuple, List
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
@@ -25,7 +29,7 @@ def run_experiment(
     proc.wait()
 
 
-def calculate_results(
+def calculate_basic_statistics(
     experiment_idx: int,
     simulation_steps: int,
     result_file_path: str = "./SimulationWorkspace/Result/result.txt",
@@ -176,7 +180,7 @@ def stitch_figures(image_paths: List[str], output_file_name: str):
     print(f"Images stitched and saved as '{output_file_name}'.")
 
 
-def visualize_all_and_stitch(
+def visualize_all_data_and_stitch(
     data: List[Dict[str, Tuple]],
     output_file_directory: str,
     stitched_file_name: str = "figure_stitched",
