@@ -4,7 +4,7 @@
 
 
 # TODO: Fix this hardcoded stuff.
-cd ./custom_services/gateway_aggregator_service
+cd ./gssi_experiment/gateway_aggregator/gateway_aggregator_service
 make refresh
 cd ../.. 
 
