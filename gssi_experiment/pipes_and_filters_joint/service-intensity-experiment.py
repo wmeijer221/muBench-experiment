@@ -11,23 +11,24 @@ import numpy as np
 import datetime
 from PIL import Image
 
-BASE_FOLDER = "./gssi_experiment/gateway_aggregator"
+BASE_FOLDER = "./gssi_experiment/pipes_and_filters_joint"
+
 
 def create_worker_params(experiment_idx: int, base_worker_param: dict):
     """1: prepares the experiment."""
     step_size = 1.0 / args.simulation_steps
-    s1_intensity = experiment_idx * step_size
+    freemium_intensity = experiment_idx * step_size
 
     experiment_params = deepcopy(base_worker_param)
     experiment_params["RunnerParameters"]["HeaderParameters"][0]["parameters"][
         "probabilities"
-    ] = [s1_intensity, 1 - s1_intensity]
+    ] = [freemium_intensity, 1 - freemium_intensity]
 
     with open(
         args.temp_worker_param_path, mode="w+", encoding="utf-8"
     ) as temp_work_params:
         print(
-            f"experiment-{experiment_idx + 1}/{args.simulation_steps + 1}: {s1_intensity=}, {temp_work_params.name=}"
+            f"experiment-{experiment_idx + 1}/{args.simulation_steps + 1}: {freemium_intensity=}, {temp_work_params.name=}"
         )
         temp_work_params.write(json.dumps(experiment_params, indent=4))
         print(experiment_params)
@@ -54,7 +55,7 @@ def calculate_results(experiment_idx: int) -> Dict[str, Tuple]:
     """3: processes the results."""
 
     step_size = 1.0 / args.simulation_steps
-    s1_intensity = experiment_idx * step_size
+    freemium_intensity = experiment_idx * step_size
 
     all_data_key = "all"
 
@@ -82,8 +83,8 @@ def calculate_results(experiment_idx: int) -> Dict[str, Tuple]:
             mx = np.max(delays)
             avg = np.average(delays)
             std = np.std(delays)
-            results[key] = (s1_intensity, mn, mx, avg, std)
-            print(f"{s1_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
+            results[key] = (freemium_intensity, mn, mx, avg, std)
+            print(f"{freemium_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
         return results
 
 
@@ -163,7 +164,7 @@ def visualize_results(data: List[Tuple], output_file_name) -> str:
     # ]
 
     # Extract data
-    s1_intensity, y_min, y_max, y_avg, y_std = zip(*data)
+    freemium_intensity, y_min, y_max, y_avg, y_std = zip(*data)
 
     # Calculate y_std_upper and y_std_lower
     y_std_upper = tuple((e + f for e, f in zip(y_avg, y_std)))
@@ -174,35 +175,35 @@ def visualize_results(data: List[Tuple], output_file_name) -> str:
 
     # First subplot with y_avg, y_min, and y_max lines, and filled area around y_avg
     axs[0].fill_between(
-        s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label="std delay"
+        freemium_intensity, y_std_lower, y_std_upper, alpha=0.3, label="std delay"
     )
-    axs[0].plot(s1_intensity, y_avg, label="avg delay", color="g")
-    axs[0].plot(s1_intensity, y_min, label="min delay", color="b")
-    axs[0].plot(s1_intensity, y_max, label="max delay", color="orange")
+    axs[0].plot(freemium_intensity, y_avg, label="avg delay", color="g")
+    axs[0].plot(freemium_intensity, y_min, label="min delay", color="b")
+    axs[0].plot(freemium_intensity, y_max, label="max delay", color="orange")
     axs[0].set_title("All Data")
     axs[0].set_ylabel("Delay (ms)")
-    axs[0].set_xlabel("S1 Intensity")
+    axs[0].set_xlabel("Freemium Intensity")
     axs[0].legend()
 
     # Second subplot with only y_avg line and filled area around it
     axs[1].fill_between(
-        s1_intensity, y_std_lower, y_std_upper, alpha=0.3, label="std delay"
+        freemium_intensity, y_std_lower, y_std_upper, alpha=0.3, label="std delay"
     )
-    axs[1].plot(s1_intensity, y_avg, label="avg delay", color="g")
+    axs[1].plot(freemium_intensity, y_avg, label="avg delay", color="g")
     axs[1].set_title("Average Delay + Standard Deviation")
     axs[1].set_ylabel("Delay (ms)")
-    axs[1].set_xlabel("S1 Intensity")
+    axs[1].set_xlabel("Freemium Intensity")
     axs[1].legend()
 
     # Third subplot with only y_avg line
-    axs[2].plot(s1_intensity, y_avg, label="avg delay", color="g")
+    axs[2].plot(freemium_intensity, y_avg, label="avg delay", color="g")
     axs[2].set_title("Average Delay")
     axs[2].set_ylabel("Delay (ms)")
-    axs[2].set_xlabel("S1 Intensity")
+    axs[2].set_xlabel("Freemium Intensity")
     axs[2].legend()
 
     # Add labels and title to the overall figure
-    fig.suptitle(f"S1 Intensity vs. Request Delay ({output_file_name})")
+    fig.suptitle(f"Freemium Intensity vs. Request Delay ({output_file_name})")
     plt.tight_layout()
     fig_name = f"{BASE_FOLDER}/figure_{output_file_name}.png"
     plt.savefig(fig_name)
@@ -289,7 +290,7 @@ parser.add_argument(
     action="store",
     dest="simulation_steps",
     default=5,
-    help="The number of simulations that are performed w.r.t. S1 intensity.",
+    help="The number of simulations that are performed w.r.t. Freemium Intensity.",
 )
 parser.add_argument(
     "-r",

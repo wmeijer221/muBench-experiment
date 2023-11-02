@@ -39,7 +39,7 @@ class Counter(object):
             self.lock.release()
 
 
-def do_requests(event, stats, local_latency_stats, query_builder: qsb.HeaderFactory):
+def do_requests(event, stats, local_latency_stats, query_builder: qsb.HeaderFactory, endpoint_picker: callable):
     global processed_requests, last_print_time_ms, error_requests, pending_requests
     # pprint(workload[event]["services"])
     # for services in event["services"]:
@@ -50,8 +50,9 @@ def do_requests(event, stats, local_latency_stats, query_builder: qsb.HeaderFact
         if runner_type == "greedy":
             pending_requests.increase()
 
-        req_url = f"{ms_access_gateway}/{event['service']}"
         headers = query_builder.build_headers()
+        endpoint = endpoint_picker(event=event, headers=headers)
+        req_url = f"{ms_access_gateway}/{endpoint}"
         r = requests.get(req_url, headers=headers)
         pending_requests.decrease()
 
@@ -91,11 +92,12 @@ def job_assignment(
     stats,
     local_latency_stats,
     query_builder: qsb.HeaderFactory,
+    endpoint_picker: callable
 ):
     global timing_error_requests, pending_requests
     try:
         worker = v_pool.submit(
-            do_requests, event, stats, local_latency_stats, query_builder
+            do_requests, event, stats, local_latency_stats, query_builder, endpoint_picker
         )
         v_futures.append(worker)
         if runner_type != "greedy":
@@ -108,6 +110,7 @@ def job_assignment(
     except TimingError as err:
         print("Error: %s" % err)
         raise err
+
 
 
 def file_runner(workload=None):
@@ -174,16 +177,30 @@ def file_runner(workload=None):
         }
         run_after_workload(args)
 
+from typing import Dict
+from functools import partial
+
+def select_endpoint_simple(event: Dict[str, Any], *args, **kwargs) -> str:
+    return event['service']
+
+def select_endpoint_by_header(event: Dict[str, Any], headers: Dict, header_key: str) -> str:
+    return event['service']['services'][headers[header_key]]
 
 def greedy_runner():
-    global start_time, stats, local_latency_stats, runner_parameters, header_builder
+    global start_time, stats, local_latency_stats, runner_parameters, header_builder, endpoint_picker
 
     print(f"{runner_parameters=}")
 
+    endpoint_picker = None
     if "ingress_service" in runner_parameters.keys():
-        srv = runner_parameters["ingress_service"]
+        endpoint_picker = select_endpoint_simple
+        srv = runner_parameters['ingress_service']
     else:
+        endpoint_picker = select_endpoint_simple
         srv = "s0"
+
+    if isinstance(srv, dict):
+        endpoint_picker = partial(select_endpoint_by_header, header_key = srv['header_key'])
 
     stats = list()
     print("###############################################")
@@ -201,10 +218,10 @@ def greedy_runner():
         if i < slow_start_end:
             event_time = i * slow_start_delay
         s.enter(
-            event_time,
-            1,
-            job_assignment,
-            argument=(pool, futures, event, stats, local_latency_stats, header_builder),
+            delay=event_time,
+            priority=1,
+            action=job_assignment,
+            argument=(pool, futures, event, stats, local_latency_stats, header_builder, endpoint_picker),
         )
 
     start_time = time.time()
@@ -357,6 +374,7 @@ try:
         params = json.load(f)
     runner_parameters = params["RunnerParameters"]
     header_builder = qsb.build_header_factory_from_runner_parameters(runner_parameters)
+    endpoint_selector = None
     runner_type = runner_parameters["workload_type"]  # {workload (default), greedy}
     workload_events = runner_parameters["workload_events"]  # n. request for greedy
     ms_access_gateway = runner_parameters[

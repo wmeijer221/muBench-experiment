@@ -9,7 +9,7 @@
       "workload_events": 1000,
       "thread_pool_size": 16,
       "result_file": "result",
-      "ingress_service": "mubench-ingress",
+      "ingress_service": "gateway-aggregator",
       "HeaderParameters": [
             {
                 "type": "RequestTypeHeaderFactory",

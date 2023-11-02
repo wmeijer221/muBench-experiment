@@ -1,0 +1,16 @@
+{
+   "K8sParameters": {
+      "prefix_yaml_file":"MicroServiceDeployment",
+      "namespace": "default",
+      "image": "wmeijer221/microservice_v4-screen:latest",
+      "cluster_domain": "cluster",
+      "path": "/api/v1",
+      "sleep": 1,
+      "dns-resolver":"kube-dns.kube-system.svc.cluster.local",
+      "cpu-limits": "2000m",
+      "replicas": 1
+   },
+   "InternalServiceFilePath": "CustomFunctions",
+   "OutputPath": "SimulationWorkspace",
+   "WorkModelPath": "./gssi_experiment/pipes_and_filters_separated/WorkModel.json"
+}

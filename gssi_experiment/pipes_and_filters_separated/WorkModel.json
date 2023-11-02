@@ -1,0 +1,318 @@
+{
+  "s1a": {
+    "external_services": [
+      {
+        "seq_len": 1,
+        "probabilities": {
+          "s2a": 1
+        },
+        "services": [
+          "s2a"
+        ]
+      }
+    ],
+    "request_type_dependent_internal_service": true,
+    "internal_service": {
+      "freemium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              120,
+              120
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.12
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "premium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              80,
+              80
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.08
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      }
+    },
+    "request_method": "rest",
+    "workers": 4,
+    "threads": 8,
+    "url": "s1.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  },
+  "s2a": {
+    "external_services": [
+      {
+        "seq_len": 1,
+        "probabilities": {
+          "s3": 1
+        },
+        "services": [
+          "s3"
+        ]
+      }
+    ],
+    "request_type_dependent_internal_service": true,
+    "internal_service": {
+      "freemium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              150,
+              150
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "premium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              90,
+              90
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.09
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      }
+    },
+    "request_method": "rest",
+    "workers": 4,
+    "threads": 8,
+    "url": "s2.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  },
+  "s3": {
+    "external_services": [
+      {
+        "seq_len": 1,
+        "probabilities": {},
+        "services": []
+      }
+    ],
+    "request_type_dependent_internal_service": false,
+    "internal_service": {
+      "loader": {
+        "__cpu_stress": {
+          "run": true,
+          "range_complexity": [
+            110,
+            110
+          ],
+          "thread_pool_size": 1,
+          "trials": 20
+        },
+        "sleep_stress": {
+          "run": true,
+          "sleep_time": 0.11
+        },
+        "mean_bandwidth": 1,
+        "function_id": "compute_pi"
+      }
+    },
+    "request_method": "rest",
+    "workers": 4,
+    "threads": 8,
+    "url": "s1.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  },
+  "s1b": {
+    "external_services": [
+      {
+        "seq_len": 1,
+        "probabilities": {
+          "s2b": 1
+        },
+        "services": [
+          "s2b"
+        ]
+      }
+    ],
+    "request_type_dependent_internal_service": true,
+    "internal_service": {
+      "freemium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              120,
+              120
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.12
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "premium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              80,
+              80
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.08
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      }
+    },
+    "request_method": "rest",
+    "workers": 4,
+    "threads": 8,
+    "url": "s2.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  },
+  "s2b": {
+    "external_services": [
+      {
+        "seq_len": 1,
+        "probabilities": {
+          "s4": 1
+        },
+        "services": [
+          "s4"
+        ]
+      }
+    ],
+    "request_type_dependent_internal_service": true,
+    "internal_service": {
+      "freemium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              150,
+              150
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.15
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      },
+      "premium": {
+        "loader": {
+          "__cpu_stress": {
+            "run": true,
+            "range_complexity": [
+              90,
+              90
+            ],
+            "thread_pool_size": 1,
+            "trials": 20
+          },
+          "sleep_stress": {
+            "run": true,
+            "sleep_time": 0.09
+          },
+          "mean_bandwidth": 1,
+          "function_id": "compute_pi"
+        }
+      }
+    },
+    "request_method": "rest",
+    "workers": 4,
+    "threads": 8,
+    "url": "s1.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  },
+  "s4": {
+    "external_services": [
+      {
+        "seq_len": 1,
+        "probabilities": {},
+        "services": []
+      }
+    ],
+    "request_type_dependent_internal_service": false,
+    "internal_service": {
+      "loader": {
+        "__cpu_stress": {
+          "run": true,
+          "range_complexity": [
+            100,
+            100
+          ],
+          "thread_pool_size": 1,
+          "trials": 20
+        },
+        "sleep_stress": {
+          "run": true,
+          "sleep_time": 0.10
+        },
+        "mean_bandwidth": 1,
+        "function_id": "compute_pi"
+      }
+    },
+    "request_method": "rest",
+    "workers": 4,
+    "threads": 8,
+    "url": "s2.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  }
+}
