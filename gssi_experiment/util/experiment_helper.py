@@ -142,6 +142,10 @@ def visualize_results(
     # Add labels and title to the overall figure
     fig.suptitle(f"S1 Intensity vs. Request Delay ({figure_name})")
     plt.tight_layout()
+
+    output_dir = os.path.dirname(output_file_path)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     plt.savefig(output_file_path)
 
 
