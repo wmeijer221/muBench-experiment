@@ -16,7 +16,7 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "apt-get install openssh-client -y && apt install make && cat /etc/os-release"
+	"postCreateCommand": "apt-get install openssh-client -y && apt install make && cat /etc/os-release && export PYTHONPATH=/workspaces/muBench-experiment/"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
