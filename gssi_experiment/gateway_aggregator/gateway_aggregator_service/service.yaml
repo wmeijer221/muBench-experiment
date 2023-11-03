@@ -49,7 +49,9 @@ spec:
         - containerPort: 8000
         env:
         - name: MY_NODE_NAME
-          value: "minikube"
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
       serviceAccountName: service-account
 ---
 apiVersion: v1
