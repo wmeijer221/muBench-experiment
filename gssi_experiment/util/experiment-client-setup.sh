@@ -1,9 +1,8 @@
+#! /bin/bash
 
 # Install pip
 cd ~
-curl https://bootstrap.pypa.io/get-pip.py >> ./get-pip.py
-python3 ./get-pip.py
-alias pip3='python3 -m pip'
+sudo apt install python3-pip
 
 # Install kubectl
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.6/2023-10-17/bin/linux/amd64/kubectl
@@ -23,5 +22,8 @@ touch config
 cd ~
 git clone https://github.com/wmeijer221/muBench-experiment.git
 cd muBench-experiment
-pip3 install -r ./requirements.txt --no-binary :all:
+# pip3 install -r ./requirements.txt --no-binary :all:
+cat requirements.txt | xargs -n 1 pip3 install
 export PYTHONPATH=~/muBench-experiment/
+
+chmod +x '/home/ubuntu/muBench-experiment/gssi_experiment/util/run-full-experiment.sh'

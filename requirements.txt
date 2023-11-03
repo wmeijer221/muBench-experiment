@@ -47,6 +47,7 @@ numpy==1.24.4
 oauthlib==3.1.1
 orjson==3.9.9
 packaging==23.2
+patchelf==0.17.2.1
 Pillow==10.1.0
 prometheus-client==0.9.0
 protobuf==3.20.1
