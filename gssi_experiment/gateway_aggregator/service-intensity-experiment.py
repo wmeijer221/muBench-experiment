@@ -8,7 +8,7 @@ import gssi_experiment.util.json_helper as json_helper
 import gssi_experiment.util.experiment_helper as exp_helper
 
 
-BASE_FOLDER = os.path.dirname(__file__)
+BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 print(f"{BASE_FOLDER=}")
 
 
@@ -56,6 +56,8 @@ parser.add_argument(
     help="Path to the file containing the muBench Kuberenetes parameters.",
 )
 args = parser.parse_args()
+
+args.simulation_steps = max(args.simulation_steps, 1)
 
 
 def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
