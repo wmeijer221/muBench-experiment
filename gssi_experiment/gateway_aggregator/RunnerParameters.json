@@ -1,12 +1,12 @@
 {
    "RunnerParameters": {
-      "ms_access_gateway": "http://192.168.49.2:31113",
+      "ms_access_gateway": "http://90.147.115.229:31113",
       "workload_files_path_list": [
          "SimulationWorkspace/workload.json"
       ],
       "workload_rounds": 1,
       "workload_type": "greedy",
-      "workload_events": 1000,
+      "workload_events": 1,
       "thread_pool_size": 16,
       "result_file": "result",
       "ingress_service": "gateway-aggregator",
@@ -27,7 +27,7 @@
             {
                 "type": "StaticHeaderFactory",
                 "parameters": {
-                    "x-baseendpoint": "http://192.168.49.2:31113/",
+                    "x-baseendpoint": "http://90.147.115.229:31113/",
                     "x-aggregatedendpoints": "s1,s2,s3",
                     "x-aggregatesequentially": "false"
                 }
