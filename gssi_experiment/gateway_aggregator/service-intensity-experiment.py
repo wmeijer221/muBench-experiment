@@ -55,6 +55,7 @@ parser.add_argument(
     default=f"{BASE_FOLDER}/K8sParameters.json",
     help="Path to the file containing the muBench Kuberenetes parameters.",
 )
+parser.add_argument("--run-once", action="store_true", dest="run_one_step")
 args = parser.parse_args()
 
 args.simulation_steps = max(args.simulation_steps, 1)
@@ -99,6 +100,11 @@ for i in range(args.simulation_steps + 1):
     results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)
     experimental_results.append(results)
     print(f"{i=}: {results=}")
+
+    # For debugging.
+    if args.run_one_step:
+        print("Stopping because 'run once' flag is set in args.")
+        break
 
 # Visualizes results.
 print(experimental_results)

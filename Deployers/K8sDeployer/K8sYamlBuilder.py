@@ -122,6 +122,8 @@ def create_deployment_yaml_files(model, k8s_parameters, nfs, output_path):
         f = file.read()
         f = f.replace("{{NAMESPACE}}", namespace)
         f = f.replace("{{PATH}}", k8s_parameters["path"])
+        # TODO: This field is currently not used as the IP address is static.
+        # Implement a manner to automatically resolve this to the IP address of the DNS service.
         f = f.replace("{{RESOLVER}}", k8s_parameters["dns-resolver"])
 
     with open(f"{output_path}/yamls/ConfigMapNginxGw.yaml", "w") as file:
