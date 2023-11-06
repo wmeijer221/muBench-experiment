@@ -28,6 +28,7 @@
 
 ### Gateway offloading
 
+- [] Implement header-based forwarding (i.e., a header specifies the endpoint, not the probability) in `muBench` `ServiceCell`..
 - [] Set up gateway offloading pattern without offloading using `muBench`.
 - [] Set up gateway offloading pattern with minor offloading using `muBench`.
 - [] Set up gateway offloading pattern with major offloading using `muBench`.
@@ -60,7 +61,7 @@ Note that to gain access to the tools' web clients, ports `30001:30003` should b
 
 To run any of the experiments, run any of the Python file in the `gssi_experiment` folder. For example `python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py`, which will run the gateway aggregator experiments using default variables.
 
-_Note: because nginx can't resolve docker hostnames (e.g., `service-1.default.svc.cluster.local`), the resolver fields in `./Deployers/K8sDeployer/Templates/ConfigMapNginxGwTemplate.yaml` reference a static IP. Odds are that this IP will change when the cluster is deployed (this issue somehow does not exist in ``minikube``). Therefore, make sure to update both resolver fields in this file to the IP address corresponding to the `kube-dns` service. There are better ways to solve this issue, but this was the easiest one for the sake of this experiment._
+_Note: because nginx can't resolve docker hostnames (e.g., `service-1.default.svc.cluster.local`), the resolver fields in `./Deployers/K8sDeployer/Templates/ConfigMapNginxGwTemplate.yaml` reference a static IP. Odds are that this IP will change when the cluster is deployed (this issue somehow does not exist in `minikube`). Therefore, make sure to update both resolver fields in this file to the IP address corresponding to the `kube-dns` service. There are better ways to solve this issue, but this was the easiest one for the sake of this experiment._
 
 Although the experiments can be ran using any device, re-running the experiments this way would likely introduce noise in the measured request delay due to potentially network issues on the device's network.
 Therefore, a fourth node is launched in the OpenStack environment, which is not configured to join the kubernetes cluster, and experiments are ran using this device. A consequence of this is that the measured delay might be notably lower than in real-life scenarios, however, this should not affect the measured outcomes as network delays more-or-less only add a constant to the total (and some noise).
