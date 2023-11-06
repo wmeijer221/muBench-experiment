@@ -55,6 +55,15 @@ parser.add_argument(
     default=f"{BASE_FOLDER}/K8sParameters.json",
     help="Path to the file containing the muBench Kuberenetes parameters.",
 )
+parser.add_argument(
+    "-ybp",
+    "--yaml-builder-path",
+    action="store",
+    dest="yaml_builder_path",
+    default="./gssi_experiment/gateway_aggregator/",
+    help="Specifies the folder in which the yaml template files are stored.",
+)
+
 parser.add_argument("--run-once", action="store_true", dest="run_one_step")
 args = parser.parse_args()
 
@@ -95,6 +104,7 @@ for i in range(args.simulation_steps + 1):
     exp_helper.run_experiment(
         args.k8s_param_path,
         args.tmp_runner_param_file_path,
+        args.yaml_builder_path,
         args.wait_for_pods_delay,
     )
     results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)

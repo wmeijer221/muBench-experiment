@@ -10,7 +10,7 @@ cd ../../..
 
 
 echo Running experiment with topology: \"$1\"
-python3 ./Deployers/K8sDeployer/RunK8sDeployer.py -c $1 -y -r
+python3 ./Deployers/K8sDeployer/RunK8sDeployer.py -c $1 -y -r -ybp $4
 
 echo Waiting $3 seconds for pods to start.
 sleep $3

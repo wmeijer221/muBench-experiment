@@ -14,6 +14,7 @@ from PIL import Image
 def run_experiment(
     k8s_parameters_path: str,
     runner_parameter_path: str,
+    yaml_builder_path: str,
     pod_initialize_delay: int = 10,
 ):
     """2: runs the experiment."""
@@ -23,6 +24,7 @@ def run_experiment(
         k8s_parameters_path,
         runner_parameter_path,
         str(pod_initialize_delay),
+        yaml_builder_path,
     ]
     print(popen_args)
     proc = Popen(popen_args)
