@@ -1,5 +1,24 @@
 {
   "gw": {
+    "internal_service": {
+      "loader": {
+        "cpu_stress": {
+          "run": true,
+          "range_complexity": [
+            200,
+            200
+          ],
+          "thread_pool_size": 1,
+          "trials": 20
+        },
+        "__sleep_stress": {
+          "run": true,
+          "sleep_time": 0.2
+        },
+        "mean_bandwidth": 1,
+        "function_id": "compute_pi"
+      }
+    },
     "request_type_dependent_external_service": true,
     "external_services": {
       "dashboard": [
