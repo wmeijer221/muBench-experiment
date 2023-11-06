@@ -14,14 +14,6 @@ print(f"{BASE_FOLDER=}")
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-p",
-    "--tmp-runner-param-path",
-    action="store",
-    dest="tmp_runner_param_file_path",
-    default=f"{BASE_FOLDER}/TmpRunnerParameters.json",
-    help="File path where the experiments' work models are temporarily stored.",
-)
-parser.add_argument(
     "-s",
     "--steps",
     type=int,
@@ -46,6 +38,29 @@ parser.add_argument(
     dest="base_runner_param_file_name",
     default=f"{BASE_FOLDER}/RunnerParameters.json",
     help="The base file that is used to generate runner parameters.",
+)
+parser.add_argument(
+    "-p",
+    "--tmp-runner-param-path",
+    action="store",
+    dest="tmp_runner_param_file_path",
+    default=f"{BASE_FOLDER}/TmpRunnerParameters.json",
+    help="File path where the experiments' runner parameters are temporarily stored.",
+)
+parser.add_argument(
+    "-bw",
+    "--base-worker-param-file",
+    action="store",
+    dest="base_worker_param_file",
+    default=f"{BASE_FOLDER}/WorkModel.json",
+)
+parser.add_argument(
+    "-pbw",
+    "--tmp-base-worker-param-file",
+    action="store",
+    dest="tmp_base_worker_param_file",
+    default=f"{BASE_FOLDER}/TmpWorkModel.json",
+    help="File path where the experiments' work models are temporarily stored.",
 )
 parser.add_argument(
     "-w",
@@ -76,12 +91,10 @@ parser.add_argument("--run-once", action="store_true", dest="run_one_step")
 args = parser.parse_args()
 
 
-def write_tmp_runner_params_for_simulation_step(step_idx: int, gw_offload: int) -> None:
+def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
     """1: prepares the experiment."""
     step_size = 1.0 / args.simulation_steps
     rq_type_intensity = step_idx * step_size
-
-    gw_offload *= 10
 
     json_helper.write_concrete_json_document(
         source_path=args.base_runner_param_file_name,
@@ -97,11 +110,33 @@ def write_tmp_runner_params_for_simulation_step(step_idx: int, gw_offload: int) 
                     "probabilities",
                 ],
                 [rq_type_intensity, 1.0 - rq_type_intensity],
-            ),
-            # Sets the gateway offload value.
+            )
+        ],
+    )
+
+
+def write_tmp_work_model(gw_offload: int) -> None:
+    gw_offload *= 10
+
+    json_helper.write_concrete_json_document(
+        source_path=args.base_worker_param_file,
+        target_path=args.tmp_base_worker_param_file,
+        overwritten_fields=[
             (
                 ["gw", "internal_service", "loader", "cpu_stress", "range_complexity"],
                 [gw_offload, gw_offload],
+            ),
+            (
+                ["s1", "internal_service", "loader", "cpu_stress", "range_complexity"],
+                [200 - gw_offload, 200 - gw_offload],
+            ),
+            (
+                ["s2", "internal_service", "loader", "cpu_stress", "range_complexity"],
+                [120 - gw_offload, 120 - gw_offload],
+            ),
+            (
+                ["s3", "internal_service", "loader", "cpu_stress", "range_complexity"],
+                [150 - gw_offload, 150 - gw_offload],
             ),
         ],
     )
@@ -117,7 +152,8 @@ start_time = datetime.datetime.now()
 experimental_results = []
 for i in range(args.simulation_steps + 1):
     for j in range(gw_min, gw_max + 1):
-        write_tmp_runner_params_for_simulation_step(i, j)
+        write_tmp_runner_params_for_simulation_step(i)
+        write_tmp_work_model(j)
         exp_helper.run_experiment(
             args.k8s_param_path,
             args.tmp_runner_param_file_path,
