@@ -18,6 +18,10 @@
 
 ## TODO:
 
+### General
+
+- [] Add easy to change deployment restrictions.
+
 ### Gateway aggregator
 
 - [x] Implement gateway aggregator service.

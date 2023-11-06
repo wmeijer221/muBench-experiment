@@ -26,7 +26,14 @@ def run_experiment(
     ]
     print(popen_args)
     proc = Popen(popen_args)
-    proc.wait()
+    try:
+        proc.wait()
+    except KeyboardInterrupt:
+        try:
+            proc.terminate()
+        except OSError:
+            pass
+        proc.wait()
 
 
 def calculate_basic_statistics(
