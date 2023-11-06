@@ -28,12 +28,13 @@ def run_experiment(
     proc = Popen(popen_args)
     try:
         proc.wait()
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as ex:
         try:
             proc.terminate()
         except OSError:
             pass
         proc.wait()
+        raise ex
 
 
 def calculate_basic_statistics(

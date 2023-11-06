@@ -226,7 +226,11 @@ def greedy_runner():
 
     start_time = time.time()
     print("Start Time:", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
-    s.run()
+    try:
+        s.run()
+    except KeyboardInterrupt:
+        pool.shutdown(wait=True,cancel_futures=True)
+        raise
 
     wait(futures)
     run_duration_sec = time.time() - start_time
