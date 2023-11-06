@@ -145,6 +145,7 @@ def visualize_results(
 
     output_dir = os.path.dirname(output_file_path)
     if not os.path.exists(output_dir):
+        print(f'Creating directory "{output_dir}".')
         os.makedirs(output_dir)
     plt.savefig(output_file_path)
 
