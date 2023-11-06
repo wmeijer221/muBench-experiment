@@ -39,7 +39,13 @@ class Counter(object):
             self.lock.release()
 
 
-def do_requests(event, stats, local_latency_stats, query_builder: qsb.HeaderFactory, endpoint_picker: callable):
+def do_requests(
+    event,
+    stats,
+    local_latency_stats,
+    query_builder: qsb.HeaderFactory,
+    endpoint_picker: callable,
+):
     global processed_requests, last_print_time_ms, error_requests, pending_requests
     # pprint(workload[event]["services"])
     # for services in event["services"]:
@@ -92,12 +98,17 @@ def job_assignment(
     stats,
     local_latency_stats,
     query_builder: qsb.HeaderFactory,
-    endpoint_picker: callable
+    endpoint_picker: callable,
 ):
     global timing_error_requests, pending_requests
     try:
         worker = v_pool.submit(
-            do_requests, event, stats, local_latency_stats, query_builder, endpoint_picker
+            do_requests,
+            event,
+            stats,
+            local_latency_stats,
+            query_builder,
+            endpoint_picker,
         )
         v_futures.append(worker)
         if runner_type != "greedy":
@@ -110,7 +121,6 @@ def job_assignment(
     except TimingError as err:
         print("Error: %s" % err)
         raise err
-
 
 
 def file_runner(workload=None):
@@ -177,14 +187,20 @@ def file_runner(workload=None):
         }
         run_after_workload(args)
 
+
 from typing import Dict
 from functools import partial
 
-def select_endpoint_simple(event: Dict[str, Any], *args, **kwargs) -> str:
-    return event['service']
 
-def select_endpoint_by_header(event: Dict[str, Any], headers: Dict, header_key: str) -> str:
-    return event['service']['services'][headers[header_key]]
+def select_endpoint_simple(event: Dict[str, Any], *args, **kwargs) -> str:
+    return event["service"]
+
+
+def select_endpoint_by_header(
+    event: Dict[str, Any], headers: Dict, header_key: str
+) -> str:
+    return event["service"]["services"][headers[header_key]]
+
 
 def greedy_runner():
     global start_time, stats, local_latency_stats, runner_parameters, header_builder, endpoint_picker
@@ -194,13 +210,15 @@ def greedy_runner():
     endpoint_picker = None
     if "ingress_service" in runner_parameters.keys():
         endpoint_picker = select_endpoint_simple
-        srv = runner_parameters['ingress_service']
+        srv = runner_parameters["ingress_service"]
     else:
         endpoint_picker = select_endpoint_simple
         srv = "s0"
 
     if isinstance(srv, dict):
-        endpoint_picker = partial(select_endpoint_by_header, header_key = srv['header_key'])
+        endpoint_picker = partial(
+            select_endpoint_by_header, header_key=srv["header_key"]
+        )
 
     stats = list()
     print("###############################################")
@@ -213,26 +231,36 @@ def greedy_runner():
     event = {"service": srv, "time": 0}
     slow_start_end = 32  # number requests with initial delays
     slow_start_delay = 0.1
-    # put every request in the thread pool scheduled at time 0 (in case with initial slow start spread to reduce initial concurrency)
-    for i in range(workload_events):
-        if i < slow_start_end:
-            event_time = i * slow_start_delay
-        s.enter(
-            delay=event_time,
-            priority=1,
-            action=job_assignment,
-            argument=(pool, futures, event, stats, local_latency_stats, header_builder, endpoint_picker),
-        )
-
-    start_time = time.time()
-    print("Start Time:", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
     try:
+        # put every request in the thread pool scheduled at time 0 (in case with initial slow start spread to reduce initial concurrency)
+        for i in range(workload_events):
+            if i < slow_start_end:
+                event_time = i * slow_start_delay
+            s.enter(
+                delay=event_time,
+                priority=1,
+                action=job_assignment,
+                argument=(
+                    pool,
+                    futures,
+                    event,
+                    stats,
+                    local_latency_stats,
+                    header_builder,
+                    endpoint_picker,
+                ),
+            )
+
+        start_time = time.time()
+        print("Start Time:", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
+
         s.run()
+        
+        wait(futures)
     except KeyboardInterrupt:
-        pool.shutdown(wait=True,cancel_futures=True)
+        pool.shutdown(wait=True, cancel_futures=True)
         raise
 
-    wait(futures)
     run_duration_sec = time.time() - start_time
     avg_latency = 1.0 * sum(local_latency_stats) / len(local_latency_stats)
 
