@@ -89,7 +89,12 @@ def compute_pi(params):
 
 def set_internal_service_function(internal_service_params):
     global internal_service_function, internal_service_params_v
-    function_name = list(internal_service_params)[0]
+    # HACK: this [0] refers to the "loader" field; it just picks the first key.
+    function_name = (
+        "loader"
+        if len(internal_service_params) == 0
+        else list(internal_service_params)[0]
+    )
     internal_service_params_v = list(internal_service_params.values())[0]
     internal_service_function = eval(function_name)
     logger.info(

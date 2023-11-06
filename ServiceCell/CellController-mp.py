@@ -8,6 +8,7 @@ import time
 import traceback
 from threading import Thread
 from concurrent import futures
+from typing import Tuple
 import jsonmerge
 
 # from multiprocessing import Array, Manager, Value
@@ -117,6 +118,121 @@ REQUEST_PROCESSING = Summary(
 )
 
 
+def build_internal_service(my_work_model: dict, behaviour_id: str) -> dict:
+    if "internal_service" not in my_work_model:
+        app.logger.warning(
+            "The work model has no defined internal service. Using empty internal service intead."
+        )
+        return {}
+
+    my_internal_service = my_work_model["internal_service"]
+
+    # Loads load model based on the acquired message type.
+    if (
+        "request_type_dependent_internal_service" in my_work_model
+        and my_work_model["request_type_dependent_internal_service"]
+    ):
+        message_type = request.headers.get("x-requesttype")
+        app.logger.info(
+            'Loading internal service of type "{message_type}"'.format(
+                message_type=message_type
+            )
+        )
+        my_internal_service = my_internal_service[message_type]
+
+    # update internal service behaviour
+    if behaviour_id != "default" and "alternative_behaviors" in my_work_model.keys():
+        if behaviour_id in my_work_model["alternative_behaviors"].keys():
+            if (
+                "internal_services"
+                in my_work_model["alternative_behaviors"][behaviour_id].keys()
+            ):
+                my_internal_service = my_work_model["alternative_behaviors"][
+                    behaviour_id
+                ]["internal_service"]
+    return my_internal_service
+
+
+
+
+def build_external_services(
+    my_work_model: dict, behaviour_id: str
+) -> Tuple[list, dict]:
+    if "external_services" not in my_work_model:
+        app.logger.warning(
+            "The work model has no defined external services. Using empty external services intead."
+        )
+        return []
+
+    my_service_mesh = my_work_model["external_services"]
+
+    # if POST check the presence of a trace
+    trace = dict()
+    if request.method == "POST":
+        trace = request.json
+        # sanity_check
+        assert len(trace.keys()) == 1, "bad trace format"
+        assert ID == list(trace)[0].split(traceEscapeString)[0], "bad trace format, ID"
+        trace[ID] = trace[list(trace)[0]]  # We insert 1 more key "s0": [value]
+
+    # Load model based on request message type.
+    if "request_type_dependent_external_service" in my_work_model:
+        message_type = request.headers.get("x-requesttype")
+        app.logger.info(
+            'Loading external service of type "{message_type}"'.format(
+                message_type=message_type
+            )
+        )
+        my_service_mesh = my_service_mesh[message_type]
+
+    if len(trace) > 0:
+        # trace-driven request
+        n_groups = len(trace[ID])
+        my_service_mesh = list()
+        for i in range(0, n_groups):
+            group = trace[ID][i]
+            group_dict = dict()
+            group_dict["seq_len"] = len(group)
+            group_dict["services"] = list(group.keys())
+            my_service_mesh.append(group_dict)
+    else:
+        # update external service behaviour
+        use_alternative_behaviour = (
+            behaviour_id != "default"
+            and "alternative_behaviors" in my_work_model.keys()
+        )
+        if use_alternative_behaviour and has_alternative_behaviour:
+            has_alternative_behaviour = (
+                behaviour_id in my_work_model["alternative_behaviors"].keys()
+            )
+            if has_alternative_behaviour:
+                if (
+                    "external_services"
+                    in my_work_model["alternative_behaviors"][behaviour_id].keys()
+                ):
+                    my_service_mesh = my_work_model["alternative_behaviors"][
+                        behaviour_id
+                    ]["external_services"]
+
+    return my_service_mesh, trace
+
+
+def build_headers() -> list:
+    # trace context propagation
+    jaeger_headers = dict()
+    for jhdr in jaeger_headers_list:
+        val = request.headers.get(jhdr)
+        if val is not None:
+            jaeger_headers[jhdr] = val
+
+    # collects custom headers
+    custom_headers = {
+        key: value for key, value in request.headers.items() if key.startswith("X-")
+    }
+    jaeger_headers.update(custom_headers)
+    return jaeger_headers
+
+
 @app.route(f"{globalDict['work_model'][ID]['path']}", methods=["GET", "POST"])
 def start_worker():
     global globalDict
@@ -130,84 +246,10 @@ def start_worker():
 
         # default behaviour
         my_work_model = globalDict["work_model"][ID]
-        my_service_mesh = my_work_model["external_services"]
-        my_internal_service = my_work_model["internal_service"]
 
-        # Loads load model based on the acquired message type.
-        if (
-            "request_type_dependent_internal_service" in my_work_model
-            and my_work_model["request_type_dependent_internal_service"]
-        ):
-            message_type = request.headers.get("x-requesttype")
-            app.logger.info(
-                'Loading internal service of type "{message_type}"'.format(
-                    message_type=message_type
-                )
-            )
-            my_internal_service = my_internal_service[message_type]
-
-        # update internal service behaviour
-        if (
-            behaviour_id != "default"
-            and "alternative_behaviors" in my_work_model.keys()
-        ):
-            if behaviour_id in my_work_model["alternative_behaviors"].keys():
-                if (
-                    "internal_services"
-                    in my_work_model["alternative_behaviors"][behaviour_id].keys()
-                ):
-                    my_internal_service = my_work_model["alternative_behaviors"][
-                        behaviour_id
-                    ]["internal_service"]
-
-        # trace context propagation
-        jaeger_headers = dict()
-        for jhdr in jaeger_headers_list:
-            val = request.headers.get(jhdr)
-            if val is not None:
-                jaeger_headers[jhdr] = val
-
-        # collects custom headers
-        custom_headers = {
-            key: value for key, value in request.headers.items() if key.startswith("X-")
-        }
-        jaeger_headers.update(custom_headers)
-
-        # if POST check the presence of a trace
-        trace = dict()
-        if request.method == "POST":
-            trace = request.json
-            # sanity_check
-            assert len(trace.keys()) == 1, "bad trace format"
-            assert (
-                ID == list(trace)[0].split(traceEscapeString)[0]
-            ), "bad trace format, ID"
-            trace[ID] = trace[list(trace)[0]]  # We insert 1 more key "s0": [value]
-
-        if len(trace) > 0:
-            # trace-driven request
-            n_groups = len(trace[ID])
-            my_service_mesh = list()
-            for i in range(0, n_groups):
-                group = trace[ID][i]
-                group_dict = dict()
-                group_dict["seq_len"] = len(group)
-                group_dict["services"] = list(group.keys())
-                my_service_mesh.append(group_dict)
-        else:
-            # update external service behaviour
-            if (
-                behaviour_id != "default"
-                and "alternative_behaviors" in my_work_model.keys()
-            ):
-                if behaviour_id in my_work_model["alternative_behaviors"].keys():
-                    if (
-                        "external_services"
-                        in my_work_model["alternative_behaviors"][behaviour_id].keys()
-                    ):
-                        my_service_mesh = my_work_model["alternative_behaviors"][
-                            behaviour_id
-                        ]["external_services"]
+        my_internal_service = build_internal_service(my_work_model, behaviour_id)
+        jaeger_headers = build_headers()
+        my_service_mesh, trace = build_external_services(my_work_model, behaviour_id)
 
         # Execute the internal service
         app.logger.info("*************** INTERNAL SERVICE STARTED ***************")
