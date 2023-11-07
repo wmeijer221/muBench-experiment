@@ -28,6 +28,12 @@ spec:
     spec:
       terminationGracePeriodSeconds : 3
       #schedulerName: no-balancing-scheduler
+
+      # Custom node selector.
+      # TODO: Integrate this in the Yaml builder.
+      nodeSelector:
+        kubernetes.io/hostname: node-1
+
       containers:
         - name: {{SERVICE_NAME}}
           image: {{IMAGE}}
