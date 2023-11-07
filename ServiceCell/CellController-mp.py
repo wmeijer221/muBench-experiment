@@ -162,7 +162,7 @@ def build_external_services(
         app.logger.warning(
             "The work model has no defined external services. Using empty external services intead."
         )
-        return []
+        return [], {}
 
     my_service_mesh = my_work_model["external_services"]
 
