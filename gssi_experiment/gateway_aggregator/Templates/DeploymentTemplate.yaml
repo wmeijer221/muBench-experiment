@@ -32,7 +32,7 @@ spec:
       # Custom node selector.
       # TODO: Integrate this in the Yaml builder.
       nodeSelector:
-        kubernetes.io/hostname: node-1
+        kubernetes.io/hostname: minikube
 
       containers:
         - name: {{SERVICE_NAME}}

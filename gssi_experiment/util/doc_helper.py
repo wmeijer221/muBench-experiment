@@ -30,7 +30,7 @@ class YamlEditor(DocumentEditor):
         return yaml_docs
 
     def write_file(self, document: Collection, output_file: TextIOWrapper):
-        yaml.dump(document, output_file)
+        yaml.dump_all(document, output_file)
 
 
 def get_element_from_nested_collection(

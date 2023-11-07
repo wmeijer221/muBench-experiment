@@ -104,6 +104,8 @@ exp_helper.visualize_all_data_and_stitch(
 
 # Clean up temp files.
 os.remove(args.tmp_runner_param_file_path)
+if os.path.exists(args.tmp_aggregator_service_path):
+    os.remove(args.tmp_aggregator_service_path)
 
 end_time = datetime.datetime.now()
 delta_time = end_time - start_time
