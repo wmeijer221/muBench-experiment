@@ -17,7 +17,7 @@
               180
             ],
             "thread_pool_size": 1,
-            "trials": 80
+            "trials": 10
           },
           "__sleep_stress": {
             "run": true,
@@ -36,7 +36,7 @@
               70
             ],
             "thread_pool_size": 1,
-            "trials": 80
+            "trials": 10
           },
           "__sleep_stress": {
             "run": true,
@@ -67,7 +67,7 @@
               120
             ],
             "thread_pool_size": 1,
-            "trials": 80
+            "trials": 10
           },
           "__sleep_stress": {
             "run": true,
@@ -86,7 +86,7 @@
               150
             ],
             "thread_pool_size": 1,
-            "trials": 80
+            "trials": 10
           },
           "__sleep_stress": {
             "run": true,
@@ -117,7 +117,7 @@
               50
             ],
             "thread_pool_size": 1,
-            "trials": 80
+            "trials": 10
           },
           "__sleep_stress": {
             "run": true,
@@ -136,7 +136,7 @@
               200
             ],
             "thread_pool_size": 1,
-            "trials": 80
+            "trials": 10
           },
           "__sleep_stress": {
             "run": true,
