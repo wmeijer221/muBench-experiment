@@ -41,6 +41,9 @@ spec:
       labels:
         app: gateway-aggregator
     spec:
+      # NOTE: This should be removed at some point.
+      nodeSelector:
+        kubernetes.io/hostname: node-1
       containers:
       - name: gateway-aggregator
         image: docker.io/wmeijer221/microservice_v4-screen:gateway_aggregator
