@@ -139,3 +139,4 @@ dmypy.json
 SimulationWorkspace/yamls/*
 SimulationWorkspace/Result/*
 gssi_experiment/*/results/*
+gssi_experiment/*/TmpRunnerParameters.json
