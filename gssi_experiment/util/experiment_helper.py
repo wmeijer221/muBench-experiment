@@ -5,6 +5,7 @@ Implements some reusable functionality for experimentation.
 import os
 from subprocess import Popen
 from typing import Dict, Tuple, List
+from time import sleep
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +18,7 @@ def run_experiment(
     yaml_builder_path: str,
     pod_initialize_delay: int = 10,
 ):
-    """2: runs the experiment."""
+    """Experiment runner that depends on a bash script."""
     run_experiment_file = os.path.dirname(__file__) + "/run-full-experiment.sh"
     popen_args = [
         run_experiment_file,
@@ -37,6 +38,58 @@ def run_experiment(
             pass
         proc.wait()
         raise ex
+
+
+def run_experiment2(
+    k8s_parameters_path: str,
+    runner_parameter_path: str,
+    yaml_builder_path: str,
+    pod_initialize_delay: int = 10,
+):
+    """Experiment runner that does not depend on a bash script."""
+    current_proc: Popen = None
+    try:
+        # 1: Deploy topology:
+        args = [
+            "python3",
+            "./Deployers/K8sDeployer/RunK8sDeployer.py",
+            "-c",
+            k8s_parameters_path,
+            "-y",
+            "-r",
+            "-ybp",
+            yaml_builder_path,
+        ]
+        current_proc = Popen(args)
+        current_proc.wait()
+
+        # 2: Wait for deployment to complete.
+        print(f"Waiting {pod_initialize_delay} seconds for pods to start.")
+        sleep(pod_initialize_delay)
+
+        # 3: run experiment
+        args = ["python3", "./Benchmarks/Runner/Runner.py", "-c", runner_parameter_path]
+        current_proc = Popen(args)
+        current_proc.wait()
+    except KeyboardInterrupt:
+        if current_proc:
+            current_proc.terminate()
+        raise
+
+
+def apply_k8s_yaml_file(file_path: str):
+    """Applies a yaml field using kubectl"""
+    args = ["kubectl", "apply", "-f", file_path]
+    proc = Popen(args)
+    statuscode = proc.wait()
+    if statuscode != 0:
+        raise ValueError(f'Could not apply "{file_path}".')
+
+
+def restart_deployment(deployment_name: str):
+    """Rolls out a restart for th egiven deployment."""
+    args = ["kubectl", "rollout", "restart", "deployment", deployment_name]
+    Popen(args).wait()
 
 
 def calculate_basic_statistics(

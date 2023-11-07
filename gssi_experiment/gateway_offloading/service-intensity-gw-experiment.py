@@ -4,7 +4,7 @@ import argparse
 import datetime
 import os
 
-import gssi_experiment.util.json_helper as json_helper
+import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
 
 
@@ -96,7 +96,7 @@ def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
     step_size = 1.0 / args.simulation_steps
     rq_type_intensity = step_idx * step_size
 
-    json_helper.write_concrete_json_document(
+    doc_helper.write_concrete_data_document(
         source_path=args.base_runner_param_file_name,
         target_path=args.tmp_runner_param_file_path,
         overwritten_fields=[
@@ -112,13 +112,14 @@ def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
                 [rq_type_intensity, 1.0 - rq_type_intensity],
             )
         ],
+        editor_type=doc_helper.JsonEditor,
     )
 
 
 def write_tmp_work_model(gw_offload: int) -> None:
     gw_offload *= 10
 
-    json_helper.write_concrete_json_document(
+    doc_helper.write_concrete_data_document(
         source_path=args.base_worker_param_file,
         target_path=args.tmp_base_worker_param_file,
         overwritten_fields=[
@@ -139,6 +140,7 @@ def write_tmp_work_model(gw_offload: int) -> None:
                 [150 - gw_offload, 150 - gw_offload],
             ),
         ],
+        editor_type=doc_helper.JsonEditor,
     )
 
 

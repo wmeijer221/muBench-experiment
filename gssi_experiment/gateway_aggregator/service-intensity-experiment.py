@@ -1,72 +1,29 @@
 """Runs service intensity experiment and outputs results."""
 
-import argparse
 import datetime
 import os
 
-import gssi_experiment.util.json_helper as json_helper
+import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
-
+import gssi_experiment.util.args_helper as args_helper
 
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 print(f"{BASE_FOLDER=}")
 
-
-parser = argparse.ArgumentParser()
+parser = args_helper.init_args(BASE_FOLDER)
 parser.add_argument(
-    "-p",
-    "--tmp-runner-param-path",
+    "--aggregator-service-path",
     action="store",
-    dest="tmp_runner_param_file_path",
-    default=f"{BASE_FOLDER}/TmpRunnerParameters.json",
-    help="File path where the experiments' work models are temporarily stored.",
+    dest="aggregator_service_path",
+    default=f"{BASE_FOLDER}/gateway_aggregator_service/service.yaml",
 )
 parser.add_argument(
-    "-s",
-    "--steps",
-    type=int,
+    "--tmp-aggregator-service-path",
     action="store",
-    dest="simulation_steps",
-    default=5,
-    help="The number of simulations that are performed w.r.t. S1 intensity.",
+    dest="tmp_aggregator_service_path",
+    default=f"{BASE_FOLDER}/tmp_service.yaml",
 )
-parser.add_argument(
-    "-r",
-    "--base-runner-params",
-    action="store",
-    dest="base_runner_param_file_name",
-    default=f"{BASE_FOLDER}/RunnerParameters.json",
-    help="The base file that is used to generate runner parameters.",
-)
-parser.add_argument(
-    "-w",
-    "--wait-for-pods",
-    action="store",
-    dest="wait_for_pods_delay",
-    type=int,
-    default=10,
-    help="The number of seconds that we will wait for pods to start.",
-)
-parser.add_argument(
-    "-k",
-    "--k8s-param-path",
-    action="store",
-    dest="k8s_param_path",
-    default=f"{BASE_FOLDER}/K8sParameters.json",
-    help="Path to the file containing the muBench Kuberenetes parameters.",
-)
-parser.add_argument(
-    "-ybp",
-    "--yaml-builder-path",
-    action="store",
-    dest="yaml_builder_path",
-    default="./gssi_experiment/gateway_aggregator/",
-    help="Specifies the folder in which the yaml template files are stored.",
-)
-
-parser.add_argument("--run-once", action="store_true", dest="run_one_step")
 args = parser.parse_args()
-
 args.simulation_steps = max(args.simulation_steps, 1)
 
 
@@ -75,7 +32,7 @@ def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
     step_size = 1.0 / args.simulation_steps
     s1_intensity = experiment_idx * step_size
 
-    json_helper.write_concrete_json_document(
+    doc_helper.write_concrete_data_document(
         source_path=args.base_runner_param_file_name,
         target_path=args.tmp_runner_param_file_path,
         overwritten_fields=[
@@ -90,18 +47,41 @@ def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
                 [s1_intensity, 1.0 - s1_intensity],
             )
         ],
+        editor_type=doc_helper.JsonEditor,
     )
+
+
+def write_tmp_service_params_for_node_selector(target_node: "str | None") -> str:
+    if target_node is None:
+        return args.aggregator_service_path
+    doc_helper.write_concrete_data_document(
+        args.aggregator_service_path,
+        args.tmp_aggregator_service_path,
+        overwritten_fields=[
+            (
+                # NOTE: Assumes the Deployment entity has index 3.
+                [3, "spec", "template", "spec", "nodeSelector"],
+                {"kubernetes.io/hostname": target_node},
+            )
+        ],
+        editor_type=doc_helper.YamlEditor,
+    )
+    return args.tmp_aggregator_service_path
 
 
 # Runs the experiment
 
 start_time = datetime.datetime.now()
 
+ga_service_yaml_path = write_tmp_service_params_for_node_selector(args.node_selector)
+exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
+
 # Executes experiments.
 experimental_results = []
 for i in range(args.simulation_steps + 1):
     write_tmp_runner_params_for_simulation_step(i)
-    exp_helper.run_experiment(
+    exp_helper.restart_deployment("gateway-aggregator")
+    exp_helper.run_experiment2(
         args.k8s_param_path,
         args.tmp_runner_param_file_path,
         args.yaml_builder_path,

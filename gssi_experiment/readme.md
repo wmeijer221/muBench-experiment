@@ -29,6 +29,8 @@
 - [x] Add support for request type-based service load in `muBench` `ServiceCell`.
 - [x] Add support for custom headers in `muBench` `Runner`.
 - [x] Set up gateway aggregator pattern experiment using `muBench`.
+- [x] Set up customizable yaml for aggregator service
+
 
 ### Gateway offloading
 
