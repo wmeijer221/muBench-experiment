@@ -1,5 +1,5 @@
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait, Future
 import sched
 import time
 import threading
@@ -92,8 +92,8 @@ def do_requests(
 
 
 def job_assignment(
-    v_pool,
-    v_futures,
+    v_pool: ThreadPoolExecutor,
+    v_futures: list,
     event,
     stats,
     local_latency_stats,
@@ -227,7 +227,7 @@ def greedy_runner():
 
     s = sched.scheduler(time.time, time.sleep)
     pool = ThreadPoolExecutor(threads)
-    futures = list()
+    futures: list[Future] = list()
     event = {"service": srv, "time": 0}
     slow_start_end = 32  # number requests with initial delays
     slow_start_delay = 0.1
@@ -259,6 +259,9 @@ def greedy_runner():
         wait(futures)
     except KeyboardInterrupt:
         pool.shutdown(wait=True, cancel_futures=True)
+        for future in futures:
+            if not future.done():
+                future.cancel()
         raise
 
     run_duration_sec = time.time() - start_time
