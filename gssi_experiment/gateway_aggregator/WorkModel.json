@@ -6,13 +6,6 @@
     "path": "/api/v1"
   },
   "s1": {
-    "external_services": [
-      {
-        "seq_len": 1,
-        "probabilities": {},
-        "services": []
-      }
-    ],
     "request_type_dependent_internal_service": true,
     "internal_service": {
       "s1_intensive": {
@@ -24,7 +17,7 @@
               180
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 160
           },
           "__sleep_stress": {
             "run": true,
@@ -43,7 +36,7 @@
               70
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 160
           },
           "__sleep_stress": {
             "run": true,
@@ -63,13 +56,6 @@
     "namespace": "default"
   },
   "s2": {
-    "external_services": [
-      {
-        "seq_len": 1,
-        "probabilities": {},
-        "services": []
-      }
-    ],
     "request_type_dependent_internal_service": true,
     "internal_service": {
       "s1_intensive": {
@@ -81,7 +67,7 @@
               120
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 160
           },
           "__sleep_stress": {
             "run": true,
@@ -100,7 +86,7 @@
               150
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 160
           },
           "__sleep_stress": {
             "run": true,
@@ -120,13 +106,6 @@
     "namespace": "default"
   },
   "s3": {
-    "external_services": [
-      {
-        "seq_len": 1,
-        "probabilities": {},
-        "services": []
-      }
-    ],
     "request_type_dependent_internal_service": true,
     "internal_service": {
       "s1_intensive": {
@@ -138,7 +117,7 @@
               50
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 160
           },
           "__sleep_stress": {
             "run": true,
@@ -157,7 +136,7 @@
               200
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 160
           },
           "__sleep_stress": {
             "run": true,
