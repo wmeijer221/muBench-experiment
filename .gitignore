@@ -141,3 +141,4 @@ SimulationWorkspace/Result/*
 gssi_experiment/*/results/*
 gssi_experiment/*/TmpRunnerParameters.json
 gssi_experiment/*/tmp_*.yaml
+gssi_experiment/gateway_aggregator/TmpWorkModel.json

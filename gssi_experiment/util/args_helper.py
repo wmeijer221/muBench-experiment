@@ -44,6 +44,30 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         help="File path where the experiments' work models are temporarily stored.",
     )
 
+    parser.add_argument(
+        '--base-worker-model',
+        action='store',
+        dest='base_worker_model_file_name',
+        default=f'{base_folder}/WorkModel.json',
+        help='The base file for the work model.'
+    )
+    parser.add_argument(
+        '--tmp-base-worker-model-path',
+        action='store',
+        dest='tmp_base_worker_model_file_path',
+        default=f'{base_folder}/TmpWorkModel.json',
+        help='The base file for the work model.'
+    )
+    parser.add_argument(
+        '-t',
+        '--trials',
+        action='store',
+        dest='trials',
+        default=20,
+        type=int,
+        help='Amplifier value for CPU load of muBench services.'
+    )
+
     # Experiment params
     parser.add_argument(
         "-s",

@@ -2,6 +2,8 @@
 
 import datetime
 import os
+import itertools
+from typing import Generator
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
@@ -69,12 +71,40 @@ def write_tmp_service_params_for_node_selector(target_node: "str | None") -> str
     return args.tmp_aggregator_service_path
 
 
+def write_tmp_work_model_for_trials(trials: int) -> None:
+    base_path = [
+        "__service",  # is overwritten
+        "internal_service",
+        "__request_type",  # is overwritten
+        "loader",
+        "cpu_stress",
+        "trials",
+    ]
+    services = ["s1", "s2", "s3"]
+    request_types = ["s1_intensive", "s3_intensive"]
+
+    def nested_key_generator() -> Generator:
+        for service, request_type in itertools.product(services, request_types):
+            base_path[0] = service
+            base_path[2] = request_type
+            yield (base_path, trials)
+
+    doc_helper.write_concrete_data_document(
+        args.base_worker_model_file_name,
+        args.tmp_base_worker_model_file_path,
+        overwritten_fields=nested_key_generator(),
+        editor_type=doc_helper.JsonEditor,
+    )
+
+
 # Runs the experiment
 
 start_time = datetime.datetime.now()
 
 ga_service_yaml_path = write_tmp_service_params_for_node_selector(args.node_selector)
 exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
+
+write_tmp_work_model_for_trials(args.trials)
 
 # Executes experiments.
 experimental_results = []
@@ -104,6 +134,7 @@ exp_helper.visualize_all_data_and_stitch(
 
 # Clean up temp files.
 os.remove(args.tmp_runner_param_file_path)
+os.remove(args.tmp_base_worker_model_file_path)
 if os.path.exists(args.tmp_aggregator_service_path):
     os.remove(args.tmp_aggregator_service_path)
 
