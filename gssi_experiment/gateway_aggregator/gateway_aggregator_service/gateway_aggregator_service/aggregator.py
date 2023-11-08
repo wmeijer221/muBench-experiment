@@ -75,7 +75,8 @@ async def aggregate_requests(request: Request) -> Tuple[List[bytes], bool]:
 
 def is_executed_sequentially(request: Request) -> bool:
     """Returns true if the request should be executed sequentially."""
-    return bool(request.headers.get(EXECUTE_SEQUENTIALLY_HEADER_KEY, False))
+    execute_sequentially = request.headers.get(EXECUTE_SEQUENTIALLY_HEADER_KEY, "false")
+    return execute_sequentially.lower() == "true"
 
 
 def get_base_endpoint(request: Request) -> str:
@@ -101,12 +102,14 @@ async def get_many_parallel(urls: List[str], forwarded_headers: Dict) -> List[An
         ret = await asyncio.gather(
             *[get(url, session, forwarded_headers) for url in urls]
         )
-    is_complete_success= all(res[1] for res in ret)
+    is_complete_success = all(res[1] for res in ret)
     ret = list([res[0] for res in ret])
     return ret, is_complete_success
 
 
-async def get_many_sequential(urls: List[str], forwarded_headers: Dict) -> Tuple[List[Any], bool]:
+async def get_many_sequential(
+    urls: List[str], forwarded_headers: Dict
+) -> Tuple[List[Any], bool]:
     """Performs multiple GET requests sequentially."""
     ret = [None] * len(urls)
     is_complete_success = True
