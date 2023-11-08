@@ -42,8 +42,7 @@ def _get_endpoint_options(base_endpoint: str, target_endpoint: str) -> List[str]
         )
 
         ENDPOINT_CACHE[target_endpoint] = cached_endpoints
-        msg = f"Updated endpoint cache: {target_endpoint}={cached_endpoints}."
-        logger.info(msg)
+        logger.info("Updated endpoint cache: %s=%s.", target_endpoint, cached_endpoints)
 
     return ENDPOINT_CACHE[target_endpoint]
 
@@ -132,11 +131,15 @@ async def _get(
             resp = await response.read()
             is_success = response.status / 100 == 2
             if is_success:
-                msg = f'Successfully got url "{url}" with resp of length {len(resp)}.'
-                logger.info(msg)
+                logger.info(
+                    'Successfully got url "%s" with a resp of length %s', url, len(resp)
+                )
             else:
-                msg = f'Failed request to url "{url}" with status {response.status}.'
-                logger.warning(msg)
+                logger.warning(
+                    'Failed request to url "%s" with status code %s.',
+                    url,
+                    response.status,
+                )
             return resp, is_success
     except Exception as e:
         print(f"Unable to get url {url} due to {e.__class__}.")
