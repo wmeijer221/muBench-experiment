@@ -34,7 +34,7 @@
 
 ### Gateway offloading
 
-- [~] Implement header-based forwarding (i.e., a header specifies the endpoint, not the probability) in `muBench` `ServiceCell`.
+- [x] Implement header-based forwarding (i.e., a header specifies the endpoint, not the probability) in `muBench` `ServiceCell`.
 - [] Set up gateway offloading pattern without offloading using `muBench`.
 - [] Set up gateway offloading pattern with minor offloading using `muBench`.
 - [] Set up gateway offloading pattern with major offloading using `muBench`.

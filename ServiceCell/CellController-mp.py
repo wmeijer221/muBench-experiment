@@ -25,6 +25,8 @@ import mub_pb2_grpc as pb2_grpc
 import mub_pb2 as pb2
 import grpc
 
+import util
+
 import logging
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
@@ -128,10 +130,7 @@ def build_internal_service(my_work_model: dict, behaviour_id: str) -> dict:
     my_internal_service = my_work_model["internal_service"]
 
     # Loads load model based on the acquired message type.
-    if (
-        "request_type_dependent_internal_service" in my_work_model
-        and my_work_model["request_type_dependent_internal_service"]
-    ):
+    if util.safe_get(my_work_model, "request_type_dependent_internal_service"):
         message_type = request.headers.get("x-requesttype")
         app.logger.info(
             'Loading internal service of type "{message_type}"'.format(
@@ -151,8 +150,6 @@ def build_internal_service(my_work_model: dict, behaviour_id: str) -> dict:
                     behaviour_id
                 ]["internal_service"]
     return my_internal_service
-
-
 
 
 def build_external_services(
@@ -176,7 +173,7 @@ def build_external_services(
         trace[ID] = trace[list(trace)[0]]  # We insert 1 more key "s0": [value]
 
     # Load model based on request message type.
-    if "request_type_dependent_external_service" in my_work_model:
+    if util.safe_get(my_service_mesh, "request_type_dependent_external_service"):
         message_type = request.headers.get("x-requesttype")
         app.logger.info(
             'Loading external service of type "{message_type}"'.format(
