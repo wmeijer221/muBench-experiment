@@ -4,12 +4,67 @@ Implements some reusable functionality for experimentation.
 
 import os
 from subprocess import Popen
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Generator
 from time import sleep
+import itertools
 
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+
+import doc_helper
+
+
+def write_tmp_service_params_for_node_selector(
+    aggregator_service_path: str,
+    tmp_aggregator_service_path: str,
+    target_node: "str | None",
+) -> str:
+    """Sets the target node field inside the deployment yaml and outputs it to a temp file."""
+    if target_node is None:
+        return aggregator_service_path
+    doc_helper.write_concrete_data_document(
+        aggregator_service_path,
+        tmp_aggregator_service_path,
+        overwritten_fields=[
+            (
+                # NOTE: Assumes the Deployment entity has index 3.
+                [3, "spec", "template", "spec", "nodeSelector"],
+                {"kubernetes.io/hostname": target_node},
+            )
+        ],
+        editor_type=doc_helper.YamlEditor,
+    )
+    return tmp_aggregator_service_path
+
+
+def write_tmp_work_model_for_trials(
+    base_worker_model_file_name: str, tmp_base_worker_model_file_path: str, trials: int
+) -> None:
+    """Overwrites the trials field in the WorkModel json file and outputs it to a tmp file."""
+    base_path = [
+        "__service",  # is overwritten
+        "internal_service",
+        "__request_type",  # is overwritten
+        "loader",
+        "cpu_stress",
+        "trials",
+    ]
+    services = ["s1", "s2", "s3"]
+    request_types = ["s1_intensive", "s3_intensive"]
+
+    def nested_key_generator() -> Generator:
+        for service, request_type in itertools.product(services, request_types):
+            base_path[0] = service
+            base_path[2] = request_type
+            yield (base_path, trials)
+
+    doc_helper.write_concrete_data_document(
+        base_worker_model_file_name,
+        tmp_base_worker_model_file_path,
+        overwritten_fields=nested_key_generator(),
+        editor_type=doc_helper.JsonEditor,
+    )
 
 
 def run_experiment(
