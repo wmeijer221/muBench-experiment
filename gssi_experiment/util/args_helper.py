@@ -16,7 +16,7 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         "--yaml-builder-path",
         action="store",
         dest="yaml_builder_path",
-        default="./gssi_experiment/gateway_aggregator/",
+        default=base_folder,
         help="Specifies the folder in which the yaml template files are stored.",
     )
     # TODO: implement this.

@@ -173,7 +173,7 @@ def build_external_services(
         trace[ID] = trace[list(trace)[0]]  # We insert 1 more key "s0": [value]
 
     # Load model based on request message type.
-    if util.safe_get(my_service_mesh, "request_type_dependent_external_service"):
+    if util.safe_get(my_work_model, "request_type_dependent_external_service"):
         message_type = request.headers.get("x-requesttype")
         app.logger.info(
             'Loading external service of type "{message_type}"'.format(
