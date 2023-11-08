@@ -19,7 +19,7 @@ RUN apt update
 RUN apt -y install openssh-server
 RUN rm -rf /var/lib/apt/lists/*
 
-COPY CellController-mp.py ExternalServiceExecutor.py InternalServiceExecutor.py mub.proto mub_pb2.py \
+COPY CellController-mp.py ExternalServiceExecutor.py InternalServiceExecutor.py mub.proto mub_pb2.py util.py \
 mub_pb2_grpc.py gunicorn.conf.py start-mp-vscode.sh ./
 
 CMD [ "/bin/bash", "/app/start-mp-vscode.sh"]
