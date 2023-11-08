@@ -64,6 +64,7 @@ async def aggregate_requests(request: Request) -> Tuple[List[bytes], bool]:
     get_many = (
         get_many_sequential if is_executed_sequentially(request) else get_many_parallel
     )
+    logger.info("Aggregating request using get_many method: %s.", get_many)
     forwarded_headers = {
         key: value
         for key, value in request.headers.items()
