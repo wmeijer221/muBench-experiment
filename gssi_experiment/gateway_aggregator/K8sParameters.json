@@ -7,7 +7,7 @@
       "path": "/api/v1",
       "sleep": 1,
       "dns-resolver":"kube-dns.kube-system.svc.cluster.local",
-      "cpu-limits": "2000m",
+      "cpu-limits": "1000m",
       "__replicas": 3
    },
    "InternalServiceFilePath": "CustomFunctions",
