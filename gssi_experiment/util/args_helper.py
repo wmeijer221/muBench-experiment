@@ -45,27 +45,27 @@ def init_args(base_folder) -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        '--base-worker-model',
-        action='store',
-        dest='base_worker_model_file_name',
-        default=f'{base_folder}/WorkModel.json',
-        help='The base file for the work model.'
+        "--base-worker-model",
+        action="store",
+        dest="base_worker_model_file_name",
+        default=f"{base_folder}/WorkModel.json",
+        help="The base file for the work model.",
     )
     parser.add_argument(
-        '--tmp-base-worker-model-path',
-        action='store',
-        dest='tmp_base_worker_model_file_path',
-        default=f'{base_folder}/TmpWorkModel.json',
-        help='The base file for the work model.'
+        "--tmp-base-worker-model-path",
+        action="store",
+        dest="tmp_base_worker_model_file_path",
+        default=f"{base_folder}/TmpWorkModel.json",
+        help="The base file for the work model.",
     )
     parser.add_argument(
-        '-t',
-        '--trials',
-        action='store',
-        dest='trials',
+        "-t",
+        "--trials",
+        action="store",
+        dest="trials",
         default=20,
         type=int,
-        help='Amplifier value for CPU load of muBench services.'
+        help="Amplifier value for CPU load of muBench services.",
     )
 
     # Experiment params
@@ -87,10 +87,7 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         default=10,
         help="The number of seconds that we will wait for pods to start.",
     )
-    
 
     parser.add_argument("--run-once", action="store_true", dest="run_one_step")
 
     return parser
-
-
