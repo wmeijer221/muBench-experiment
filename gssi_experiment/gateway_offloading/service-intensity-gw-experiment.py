@@ -1,94 +1,27 @@
 """Runs service intensity experiment and outputs results."""
 
-import argparse
 import datetime
 import os
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
-
+import gssi_experiment.util.args_helper as args_helper
 
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 print(f"{BASE_FOLDER=}")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-s",
-    "--steps",
-    type=int,
-    action="store",
-    dest="simulation_steps",
-    default=5,
-    help="The number of simulations that are performed w.r.t. request type intensity.",
-)
+parser = args_helper.init_args(BASE_FOLDER)
 parser.add_argument(
     "-gw",
     "--gateway-load",
-    type=int,
     action="store",
     dest="gateway_load_range",
     default="[0,10]",
     help="The number of simulations that are performed w.r.t. gateway offloading.",
 )
-parser.add_argument(
-    "-r",
-    "--base-runner-params",
-    action="store",
-    dest="base_runner_param_file_name",
-    default=f"{BASE_FOLDER}/RunnerParameters.json",
-    help="The base file that is used to generate runner parameters.",
-)
-parser.add_argument(
-    "-p",
-    "--tmp-runner-param-path",
-    action="store",
-    dest="tmp_runner_param_file_path",
-    default=f"{BASE_FOLDER}/TmpRunnerParameters.json",
-    help="File path where the experiments' runner parameters are temporarily stored.",
-)
-parser.add_argument(
-    "-bw",
-    "--base-worker-param-file",
-    action="store",
-    dest="base_worker_param_file",
-    default=f"{BASE_FOLDER}/WorkModel.json",
-)
-parser.add_argument(
-    "-pbw",
-    "--tmp-base-worker-param-file",
-    action="store",
-    dest="tmp_base_worker_param_file",
-    default=f"{BASE_FOLDER}/TmpWorkModel.json",
-    help="File path where the experiments' work models are temporarily stored.",
-)
-parser.add_argument(
-    "-w",
-    "--wait-for-pods",
-    action="store",
-    dest="wait_for_pods_delay",
-    type=int,
-    default=10,
-    help="The number of seconds that we will wait for pods to start.",
-)
-parser.add_argument(
-    "-k",
-    "--k8s-param-path",
-    action="store",
-    dest="k8s_param_path",
-    default=f"{BASE_FOLDER}/K8sParameters.json",
-    help="Path to the file containing the muBench Kuberenetes parameters.",
-)
-parser.add_argument(
-    "-ybp",
-    "--yaml-builder-path",
-    action="store",
-    dest="yaml_builder_path",
-    default=f"{BASE_FOLDER}/",
-    help="Specifies the folder in which the yaml template files are stored.",
-)
-parser.add_argument("--run-once", action="store_true", dest="run_one_step")
 args = parser.parse_args()
+args.simulation_steps = max(args.simulation_steps, 1)
 
 
 def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
@@ -116,7 +49,8 @@ def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
     )
 
 
-def write_tmp_work_model(gw_offload: int) -> None:
+def write_tmp_work_model_for_offload(gw_offload: int) -> None:
+    """Overwrites the "trials" field in the workmodel."""
     gw_offload *= 10
 
     doc_helper.write_concrete_data_document(
@@ -144,8 +78,6 @@ def write_tmp_work_model(gw_offload: int) -> None:
     )
 
 
-args.simulation_steps = max(args.simulation_steps, 1)
-
 start_time = datetime.datetime.now()
 
 
@@ -155,8 +87,13 @@ experimental_results = []
 for i in range(args.simulation_steps + 1):
     for j in range(gw_min, gw_max + 1):
         write_tmp_runner_params_for_simulation_step(i)
-        write_tmp_work_model(j)
-        exp_helper.run_experiment(
+        write_tmp_work_model_for_offload(j)
+        exp_helper.write_tmp_work_model_for_trials(
+            args.tmp_base_worker_model_file_path,
+            args.tmp_base_worker_model_file_path,
+            args.trials,
+        )
+        exp_helper.run_experiment2(
             args.k8s_param_path,
             args.tmp_runner_param_file_path,
             args.yaml_builder_path,
