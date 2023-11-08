@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-import doc_helper
+import gssi_experiment.util.doc_helper as doc_helper
 
 
 def write_tmp_service_params_for_node_selector(
