@@ -83,9 +83,9 @@ start_time = datetime.datetime.now()
 
 # Executes experiments.
 (gw_min, gw_max) = (int(ele) for ele in args.gateway_load_range[1:-1].split(","))
-experimental_results = []
-for i in range(args.simulation_steps + 1):
-    for j in range(gw_min, gw_max + 1):
+for j in range(gw_min, gw_max + 1):
+    experimental_results = []
+    for i in range(args.simulation_steps + 1):
         write_tmp_runner_params_for_simulation_step(i)
         write_tmp_work_model_for_offload(j)
         exp_helper.write_tmp_work_model_for_trials(
@@ -108,12 +108,13 @@ for i in range(args.simulation_steps + 1):
             print("Stopping because 'run once' flag is set in args.")
             break
 
-
-# Visualizes results.
-print(experimental_results)
-exp_helper.visualize_all_data_and_stitch(
-    experimental_results, output_file_directory=f"{BASE_FOLDER}/results/"
-)
+    # Visualizes results.
+    print(experimental_results)
+    exp_helper.visualize_all_data_and_stitch(
+        experimental_results,
+        output_file_directory=f"{BASE_FOLDER}/results/",
+        stitched_file_name=f"figure_stitched_gw_{j * 10}",
+    )
 
 # Clean up temp files.
 os.remove(args.tmp_runner_param_file_path)
