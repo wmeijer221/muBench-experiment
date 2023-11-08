@@ -54,8 +54,8 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> None:
     gw_offload *= 10
 
     doc_helper.write_concrete_data_document(
-        source_path=args.base_worker_param_file,
-        target_path=args.tmp_base_worker_param_file,
+        source_path=args.base_worker_model_file_name,
+        target_path=args.tmp_base_worker_model_file_path,
         overwritten_fields=[
             (
                 ["gw", "internal_service", "loader", "cpu_stress", "range_complexity"],
