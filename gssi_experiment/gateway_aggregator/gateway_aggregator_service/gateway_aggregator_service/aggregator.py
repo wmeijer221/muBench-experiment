@@ -22,7 +22,7 @@ ENDPOINT_CACHE: Dict[str, List[str]] = dict()
 logger = logging.getLogger(__name__)
 
 
-def get_endpoint_options(base_endpoint: str, target_endpoint: str) -> List[str]:
+def _get_endpoint_options(base_endpoint: str, target_endpoint: str) -> List[str]:
     """
     Factory method for URLs for the provided target endpoints.
     If the pod corresponding to one of the endpoins is hosted on the
@@ -51,18 +51,20 @@ def get_endpoint_options(base_endpoint: str, target_endpoint: str) -> List[str]:
 async def aggregate_requests(request: Request) -> Tuple[List[bytes], bool]:
     """Performs the requests in parallel and aggregates their results."""
     try:
-        base_endpoint = get_base_endpoint(request)
-        target_endpoints = get_aggregated_endpoints(request)
+        base_endpoint = _get_base_endpoint(request)
+        target_endpoints = _get_aggregated_endpoints(request)
     except Exception as ex:
         raise HTTPException(
             status_code=400, detail=f"Invalid headers: {ex.__cause__}."
         ) from ex
     target_urls = [
-        random.choice(get_endpoint_options(base_endpoint, target_endpoint))
+        random.choice(_get_endpoint_options(base_endpoint, target_endpoint))
         for target_endpoint in target_endpoints
     ]
     get_many = (
-        get_many_sequential if is_executed_sequentially(request) else get_many_parallel
+        _get_many_sequential
+        if _is_executed_sequentially(request)
+        else _get_many_parallel
     )
     logger.info("Aggregating request using get_many method: %s.", get_many)
     forwarded_headers = {
@@ -74,13 +76,13 @@ async def aggregate_requests(request: Request) -> Tuple[List[bytes], bool]:
     return result, is_complete_success
 
 
-def is_executed_sequentially(request: Request) -> bool:
+def _is_executed_sequentially(request: Request) -> bool:
     """Returns true if the request should be executed sequentially."""
     execute_sequentially = request.headers.get(EXECUTE_SEQUENTIALLY_HEADER_KEY, "false")
     return execute_sequentially.lower() == "true"
 
 
-def get_base_endpoint(request: Request) -> str:
+def _get_base_endpoint(request: Request) -> str:
     """Returns the base endpoint for the request."""
     base = request.headers.get(BASE_ENDPOINT_HEADER_KEY)
     if base is None:
@@ -88,7 +90,7 @@ def get_base_endpoint(request: Request) -> str:
     return base
 
 
-def get_aggregated_endpoints(request: Request) -> List[str]:
+def _get_aggregated_endpoints(request: Request) -> List[str]:
     """Extracts aggregated endpoints from the provided request."""
     aggregate_endpoints = request.headers.get(AGGREGATED_ENDPOINT_HEADER_KEY)
     if aggregate_endpoints is None:
@@ -97,18 +99,18 @@ def get_aggregated_endpoints(request: Request) -> List[str]:
     return endpoints
 
 
-async def get_many_parallel(urls: List[str], forwarded_headers: Dict) -> List[Any]:
+async def _get_many_parallel(urls: List[str], forwarded_headers: Dict) -> List[Any]:
     """Performs multiple GET requests in parallel."""
     async with aiohttp.ClientSession() as session:
         ret = await asyncio.gather(
-            *[get(url, session, forwarded_headers) for url in urls]
+            *[_get(url, session, forwarded_headers) for url in urls]
         )
     is_complete_success = all(res[1] for res in ret)
     ret = list([res[0] for res in ret])
     return ret, is_complete_success
 
 
-async def get_many_sequential(
+async def _get_many_sequential(
     urls: List[str], forwarded_headers: Dict
 ) -> Tuple[List[Any], bool]:
     """Performs multiple GET requests sequentially."""
@@ -116,12 +118,12 @@ async def get_many_sequential(
     is_complete_success = True
     async with aiohttp.ClientSession() as session:
         for i, url in enumerate(urls):
-            ret[i], is_success = await get(url, session, forwarded_headers)
+            ret[i], is_success = await _get(url, session, forwarded_headers)
             is_complete_success = is_success and is_complete_success
     return ret, is_complete_success
 
 
-async def get(
+async def _get(
     url, session: aiohttp.ClientSession, forwarded_headers: Dict
 ) -> Tuple[bytes, bool]:
     """Makes GET request and returns the response."""
