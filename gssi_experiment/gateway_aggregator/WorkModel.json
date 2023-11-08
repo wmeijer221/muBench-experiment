@@ -48,8 +48,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 4,
-    "threads": 8,
+    "workers": 9,
+    "threads": 128,
     "url": "s1.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -98,8 +98,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 4,
-    "threads": 8,
+    "workers": 9,
+    "threads": 128,
     "url": "s2.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
@@ -148,8 +148,8 @@
       }
     },
     "request_method": "rest",
-    "workers": 4,
-    "threads": 8,
+    "workers": 9,
+    "threads": 128,
     "url": "s3.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
