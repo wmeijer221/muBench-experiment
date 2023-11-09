@@ -97,4 +97,4 @@ if os.path.exists(args.tmp_aggregator_service_path):
 
 end_time = datetime.datetime.now()
 delta_time = end_time - start_time
-print(f"Finished experiment in {str(delta_time)}.")
+print(f"Finished experiment in {str(delta_time)} at {str(end_time)}.")
