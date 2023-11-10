@@ -24,6 +24,13 @@ parser.add_argument(
     dest="tmp_aggregator_service_path",
     default=f"{BASE_FOLDER}/tmp_service.yaml",
 )
+parser.add_argument(
+    "--node-selector-method",
+    action="store",
+    dest="node_selector_method",
+    default=None,
+    help="Specifies the node selector behaviour of the service deployments.",
+)
 args = parser.parse_args()
 args.simulation_steps = max(args.simulation_steps, 1)
 
@@ -52,17 +59,13 @@ def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
     )
 
 
-def write_tmp_deployment_template():
+def write_tmp_deployment_template(template: "str | None"):
     # Reads template base.
     deployment_path = f"{args.yaml_builder_path}/Templates/DeploymentTemplateBase.yaml"
     with open(deployment_path, "r", encoding="utf-8") as base_file:
         data = base_file.read()
-    # Overwrites data.
-    template = f"""
-      nodeSelector:
-        kubernetes.io/hostname: {args.node_selector}
-"""
-    setting = template if args.node_selector else ""
+
+    setting = template if template else ""
     data = data.replace("{{NODE_SELECTOR_FIELD}}", setting)
     # writes data
     deployment_path = f"{args.yaml_builder_path}/Templates/DeploymentTemplate.yaml"
@@ -71,6 +74,30 @@ def write_tmp_deployment_template():
 
 
 # Runs the experiment
+
+
+# Overwrites data.
+node_selector_template = f"""
+      nodeSelector:
+        kubernetes.io/hostname: {args.node_selector}
+"""
+
+equal_distribution_template = """
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{SERVICE_NAME}}
+"""
+
+templates = {
+    'node_selector': node_selector_template,
+    'equal_distribution': equal_distribution_template,
+    None: ""
+}
+used_template= templates[args.node_selector_method]
 
 start_time = datetime.datetime.now()
 
@@ -81,7 +108,7 @@ exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
 exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
-write_tmp_deployment_template()
+write_tmp_deployment_template(used_template)
 
 # Executes experiments.
 experimental_results = []
