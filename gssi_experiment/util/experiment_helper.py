@@ -2,6 +2,7 @@
 Implements some reusable functionality for experimentation.
 """
 
+import csv
 import datetime
 import os
 import shutil
@@ -91,11 +92,11 @@ def run_experiment2(
         yaml_builder_path,
         pod_initialize_delay,
     )
+    end_time = datetime.datetime.now()
     sleep(1)
     mubench_results_path = "./SimulationWorkspace/Result/result.txt"
     mubench_output_path = f"{output_folder}/mubench_results.csv"
-    shutil.copy(mubench_results_path, mubench_output_path)
-    end_time = datetime.datetime.now()
+    _rewrite_mubench_results(mubench_results_path, mubench_output_path)
 
     # Fetches CPU utilization.
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
@@ -155,6 +156,29 @@ def _run_experiment(
         raise
 
 
+def _rewrite_mubench_results(input_path: str, output_path: str):
+    with open(output_path, "w+", encoding="utf-8") as output_file:
+        csv_writer = csv.writer(output_file)
+        headers = [
+            "timestamp",
+            "latency_ms",
+            "status_code",
+            "processed_requests",
+            "pending_requests",
+        ]
+        with open(input_path, "r", encoding="utf-8") as input_file:
+            for i, line in enumerate(input_file):
+                chunks = line.split()
+                msg_headers = [ele[1:-1].split(":") for ele in chunks[5:]]
+                if i == 0:
+                    header_keys = [ele[0][2:] for ele in msg_headers]
+                    headers = [*headers, *header_keys]
+                    csv_writer.writerow(headers)
+                msg_headers = [":".join(ele[1:]) for ele in msg_headers]
+                data_point = [*chunks[:5], *msg_headers]
+                csv_writer.writerow(data_point)
+
+
 def apply_k8s_yaml_file(file_path: str):
     """Applies a yaml field using kubectl"""
     args = ["kubectl", "apply", "-f", file_path]
@@ -211,3 +235,9 @@ def calculate_basic_statistics(
             results[key] = (s1_intensity, mn, mx, avg, std)
             print(f"{s1_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
         return results
+
+
+# _rewrite_mubench_results(
+#     "./gssi_experiment/gateway_aggregator/results/2023_11_10/0_steps/mubench_results.csv",
+#     "./gssi_experiment/gateway_aggregator/results/2023_11_10/0_steps/mubench_results_rewrite.csv",
+# )
