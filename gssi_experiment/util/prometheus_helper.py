@@ -17,7 +17,7 @@ from gssi_experiment.util.util import (
 
 dotenv.load_dotenv()
 
-DEFAULT_STEP_SIZE_IN_SECONDS = 15
+DEFAULT_STEP_SIZE_IN_MINUTES = 2
 DEFAULT_TARGET_ENDPOINT = "90.147.115.229:30000"
 # DEFAULT_TARGET_ENDPOINT = "192.168.49.2:30000"
 
@@ -29,12 +29,12 @@ def fetch_service_cpu_utilization(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     target_endpoint: str = DEFAULT_TARGET_ENDPOINT,
-    step_size_in_seconds: int = DEFAULT_STEP_SIZE_IN_SECONDS,
+    step_size_in_minutes: int = DEFAULT_STEP_SIZE_IN_MINUTES,
 ):
     """Retrieves CPU utilization information from Prometheus and prints it to a CSV file."""
     tmp_output_path = f"{output_path}.tmp"
     _fetch_service_cpu_utilization_from_prometheus(
-        tmp_output_path, start_time, end_time, target_endpoint, step_size_in_seconds
+        tmp_output_path, start_time, end_time, target_endpoint, step_size_in_minutes
     )
     _parse_prometheus_cpu_utilization_csv(tmp_output_path, output_path)
     os.remove(tmp_output_path)
@@ -45,8 +45,9 @@ def _fetch_service_cpu_utilization_from_prometheus(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     target_endpoint: str = DEFAULT_TARGET_ENDPOINT,
-    step_size_in_seconds: int = DEFAULT_STEP_SIZE_IN_SECONDS,
+    step_size_in_minutes: int = DEFAULT_STEP_SIZE_IN_MINUTES,
 ):
+    step_size_in_seconds = step_size_in_minutes * 60
     start = start_time.strftime(TIME_FORMAT)
     end = end_time.strftime(TIME_FORMAT)
     prom_user = os.getenv("PROM_USER")
@@ -58,8 +59,8 @@ def _fetch_service_cpu_utilization_from_prometheus(
         f"{prom_user}:{prom_pass}",
         f"http://{target_endpoint}/api/v1/query_range?start={start}&end={end}&step={step_size_in_seconds}s&",
         "--data-urlencode",
-        'query=rate(container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*",service="prometheus-kube-prometheus-kubelet"}'
-        + f"[{step_size_in_seconds}s])",
+        'query=sum by (container) (increase(container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*",service="prometheus-kube-prometheus-kubelet"}'
+        + f"[{step_size_in_minutes}m])/{step_size_in_seconds})",
     ]
     print(args)
     with open(output_path, "w+", encoding="utf-8") as output_file:
@@ -91,7 +92,7 @@ def _parse_prometheus_cpu_utilization_csv(input_path: str, output_path: str):
             data_row = [formatted_timestamp, *data_row]
             csv_writer.writerow(data_row)
             counter += 1
-        print(f'Wrote {counter} CPU utilization entries.')
+        print(f"Wrote {counter} CPU utilization entries.")
 
 
 # Test code
