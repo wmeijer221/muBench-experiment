@@ -14,7 +14,10 @@ import json
 import numpy as np
 
 import gssi_experiment.util.doc_helper as doc_helper
-from gssi_experiment.util.prometheus_helper import fetch_service_cpu_utilization, TIME_FORMAT
+from gssi_experiment.util.prometheus_helper import (
+    fetch_service_cpu_utilization,
+    TIME_FORMAT,
+)
 
 
 def write_tmp_service_params_for_node_selector(
@@ -75,6 +78,7 @@ def run_experiment2(
     yaml_builder_path: str,
     output_folder: str,
     pod_initialize_delay: int = 10,
+    prometheus_fetch_delay: int = 30,
 ):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -95,9 +99,10 @@ def run_experiment2(
 
     # Fetches CPU utilization.
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
-    fetch_start = start_time - datetime.timedelta(hours=1)
-    fetch_end = end_time + datetime.timedelta(hours=1)
-    sleep(30)
+    fetch_start = start_time - datetime.timedelta(minutes=2)
+    fetch_end = end_time + datetime.timedelta(minutes=2)
+    print(f"Waiting {prometheus_fetch_delay} seconds before fetching results.")
+    sleep(prometheus_fetch_delay)
     fetch_service_cpu_utilization(cpu_utilization_output_path, fetch_start, fetch_end)
 
     # Write meta data file
@@ -110,7 +115,7 @@ def run_experiment2(
     with open(
         f"{output_folder}/metadata.json", "w+", encoding="utf-8"
     ) as metadata_output_file:
-        metadata_output_file.write(json.dumps(meta_data))
+        metadata_output_file.write(json.dumps(meta_data, indent=4))
 
 
 def _run_experiment(

@@ -2,7 +2,10 @@
 Implements general utility functions.
 """
 
-import regex as re
+import io
+import math
+from numbers import Number
+import os
 from typing import (
     Any,
     Tuple,
@@ -13,14 +16,11 @@ from typing import (
     Generic,
     Dict,
     List,
-    Generator,
 )
-from numbers import Number
-import io
-import numpy
-import math
-import os
+
 import matplotlib.pyplot as plt
+import numpy
+import regex as re
 
 
 def has_keys(d: Dict, keys: list) -> bool:
@@ -57,6 +57,7 @@ def get_nested(obj: dict, key: List[str]) -> "Any | None":
             return None
         current = current[key_element]
     return current
+
 
 def get_nested_many(obj: dict, key: List[str]) -> "List[Any] | Any | None":
     """Same idea as ``get_nested``, however, when a variable is a list it iterates through all of them."""

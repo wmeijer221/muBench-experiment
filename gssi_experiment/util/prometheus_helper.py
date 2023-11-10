@@ -17,8 +17,7 @@ from gssi_experiment.util.util import (
 
 dotenv.load_dotenv()
 
-DEFAULT_STEP_SIZE_IN_SECONDS = 30
-DEFAULT_TARGET_ENDPOINT = "90.147.115.229:30000"
+DEFAULT_STEP_SIZE_IN_SECONDS = 1
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
@@ -36,7 +35,7 @@ def fetch_service_cpu_utilization(
         tmp_output_path, start_time, end_time, target_endpoint, step_size_in_seconds
     )
     _parse_prometheus_cpu_utilization_csv(tmp_output_path, output_path)
-    # os.remove(tmp_output_path)
+    os.remove(tmp_output_path)
 
 
 def _fetch_service_cpu_utilization_from_prometheus(
@@ -57,8 +56,10 @@ def _fetch_service_cpu_utilization_from_prometheus(
         f"{prom_user}:{prom_pass}",
         f"http://{target_endpoint}/api/v1/query_range?start={start}&end={end}&step={step_size_in_seconds}s&",
         "--data-urlencode",
-        'query=container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*",service="prometheus-kube-prometheus-kubelet"}',
+        'query=rate(container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*",service="prometheus-kube-prometheus-kubelet"}'
+        + f"[{step_size_in_seconds}s])",
     ]
+    print(args)
     with open(output_path, "w+", encoding="utf-8") as output_file:
         proc = Popen(args, stdout=output_file)
         proc.wait()
@@ -77,6 +78,7 @@ def _parse_prometheus_cpu_utilization_csv(input_path: str, output_path: str):
         csv_writer = csv.writer(output_file)
         csv_writer.writerow(containers)
         # The first element is the timestamp.
+        counter = 0
         sorting_key = lambda datapoint: datapoint[0]
         for timestamp, element in merge_iterate_through_lists(values, sorting_key):
             formatted_timestamp = datetime.datetime.fromtimestamp(timestamp)
@@ -86,6 +88,8 @@ def _parse_prometheus_cpu_utilization_csv(input_path: str, output_path: str):
             ]
             data_row = [formatted_timestamp, *data_row]
             csv_writer.writerow(data_row)
+            counter += 1
+        print(f'Wrote {counter} entries.')
 
 
 # Test code
