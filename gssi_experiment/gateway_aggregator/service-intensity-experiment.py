@@ -52,6 +52,24 @@ def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
     )
 
 
+def write_tmp_deployment_template():
+    # Reads template base.
+    deployment_path = f"{args.yaml_builder_path}/Templates/DeploymentTemplateBase.yaml"
+    with open(deployment_path, "r", encoding="utf-8") as base_file:
+        data = base_file.read()
+    # Overwrites data.
+    template = f"""
+      nodeSelector:
+        kubernetes.io/hostname: {args.node_selector}
+"""
+    setting = template if args.node_selector else ""
+    data = data.replace("{{NODE_SELECTOR_FIELD}}", setting)
+    # writes data
+    deployment_path = f"{args.yaml_builder_path}/Templates/DeploymentTemplate.yaml"
+    with open(deployment_path, "w+", encoding="utf-8") as output_file:
+        output_file.write(data)
+
+
 # Runs the experiment
 
 start_time = datetime.datetime.now()
@@ -63,6 +81,7 @@ exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
 exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
+write_tmp_deployment_template()
 
 # Executes experiments.
 experimental_results = []
