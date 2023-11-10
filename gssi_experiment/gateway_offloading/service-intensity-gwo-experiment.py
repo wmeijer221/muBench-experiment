@@ -5,6 +5,7 @@ import os
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
+import gssi_experiment.util.experiment_visualization_helper as vis_helper
 import gssi_experiment.util.args_helper as args_helper
 
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -110,7 +111,7 @@ for j in range(gw_min, gw_max + 1):
 
     # Visualizes results.
     print(experimental_results)
-    exp_helper.visualize_all_data_and_stitch(
+    vis_helper.visualize_all_data_and_stitch(
         experimental_results,
         output_file_directory=f"{BASE_FOLDER}/results/",
         stitched_file_name=f"figure_stitched_gw_{j * 10}",
