@@ -69,10 +69,13 @@ experimental_results = []
 for i in range(args.simulation_steps + 1):
     write_tmp_runner_params_for_simulation_step(i)
     exp_helper.restart_deployment("gateway-aggregator")
+    today = datetime.datetime.now()
+    today = today.strftime("%Y_%m_%d")
     exp_helper.run_experiment2(
         args.k8s_param_path,
         args.tmp_runner_param_file_path,
         args.yaml_builder_path,
+        f"{BASE_FOLDER}/results/{today}/{i}_steps/",
         args.wait_for_pods_delay,
     )
     results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)

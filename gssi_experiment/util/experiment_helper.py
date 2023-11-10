@@ -4,6 +4,7 @@ Implements some reusable functionality for experimentation.
 
 import datetime
 import os
+import shutil
 from subprocess import Popen
 from typing import Dict, Tuple, Generator
 from time import sleep
@@ -13,7 +14,7 @@ import json
 import numpy as np
 
 import gssi_experiment.util.doc_helper as doc_helper
-from gssi_experiment.util.prometheus_helper import fetch_service_cpu_utilization
+from gssi_experiment.util.prometheus_helper import fetch_service_cpu_utilization, TIME_FORMAT
 
 
 def write_tmp_service_params_for_node_selector(
@@ -75,6 +76,9 @@ def run_experiment2(
     output_folder: str,
     pod_initialize_delay: int = 10,
 ):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     # Runs experiment
     start_time = datetime.datetime.now()
     _run_experiment(
@@ -83,21 +87,23 @@ def run_experiment2(
         yaml_builder_path,
         pod_initialize_delay,
     )
+    sleep(1)
     mubench_results_path = "./SimulationWorkspace/Result/result.txt"
     mubench_output_path = f"{output_folder}/mubench_results.csv"
-    os.rename(mubench_results_path, mubench_output_path)
+    shutil.copy(mubench_results_path, mubench_output_path)
     end_time = datetime.datetime.now()
 
     # Fetches CPU utilization.
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
     fetch_start = start_time - datetime.timedelta(hours=1)
     fetch_end = end_time + datetime.timedelta(hours=1)
+    sleep(30)
     fetch_service_cpu_utilization(cpu_utilization_output_path, fetch_start, fetch_end)
 
     # Write meta data file
     meta_data = {
-        "start_time": start_time,
-        "end_time": end_time,
+        "start_time": start_time.strftime(TIME_FORMAT),
+        "end_time": end_time.strftime(TIME_FORMAT),
         "muBench_results_path": mubench_output_path,
         "Prometheus_cpu_utilization_path": cpu_utilization_output_path,
     }
