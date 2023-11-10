@@ -28,11 +28,12 @@ spec:
     spec:
       terminationGracePeriodSeconds : 3
       #schedulerName: no-balancing-scheduler
-
-      # Custom node selector.
-      # TODO: Integrate this in the Yaml builder.
+      
+      # GSSI Custom field.
+      
       nodeSelector:
         kubernetes.io/hostname: node-3
+
 
       containers:
         - name: {{SERVICE_NAME}}

@@ -72,6 +72,20 @@ def write_tmp_work_model_for_trials(
     )
 
 
+def write_tmp_k8s_params(
+    input_path: str, output_path: str, cpu_limits: str, replicas: int
+):
+    doc_helper.write_concrete_data_document(
+        input_path,
+        output_path,
+        editor_type=doc_helper.JsonEditor,
+        overwritten_fields=[
+            (["K8sParameters", "cpu-limits"], cpu_limits),
+            (["K8sParameters", "replicas"], replicas),
+        ],
+    )
+
+
 def run_experiment2(
     k8s_parameters_path: str,
     runner_parameter_path: str,

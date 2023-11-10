@@ -4,6 +4,22 @@ import argparse
 def init_args(base_folder) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
 
+    # General
+    parser.add_argument(
+        "--seed",
+        action="store",
+        dest="seed",
+        default=0,
+        help="The seed used for random operations.",
+    )
+    parser.add_argument(
+        "--name",
+        action="store",
+        dest="name",
+        default="",
+        help="special name for the experiment to allow diversification.",
+    )
+
     # muBench k8s
     parser.add_argument(
         "--k8s-param-path",
@@ -19,13 +35,26 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         default=base_folder,
         help="Specifies the folder in which the yaml template files are stored.",
     )
-    # TODO: implement this.
     parser.add_argument(
         "--node-selector",
         action="store",
         dest="node_selector",
         default=None,
         help="The node on which the pods must be deployed.",
+    )
+    parser.add_argument(
+        "--workload-events",
+        action="store",
+        dest="workload_events",
+        default=500,
+        type=int,
+        help="The number of requests sent to the system.",
+    )
+    parser.add_argument(
+        "--cpu-limit", action="store", dest="cpu_limit", default="1000m"
+    )
+    parser.add_argument(
+        "--replicas", action="store", dest="replicas", default=1, type=int
     )
 
     # Dynamic muBench runner params

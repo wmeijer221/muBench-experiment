@@ -2,6 +2,7 @@
 
 import datetime
 import os
+import random
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
@@ -34,8 +35,13 @@ parser.add_argument(
 args = parser.parse_args()
 args.simulation_steps = max(args.simulation_steps, 1)
 
+random.seed(args.seed)
+print(f"{args.seed=}")
 
-def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
+
+def write_tmp_runner_params_for_simulation_step(
+    experiment_idx: int, workload_events: int
+) -> None:
     """1: prepares the experiment."""
     step_size = 1.0 / args.simulation_steps
     s1_intensity = experiment_idx * step_size
@@ -53,7 +59,8 @@ def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
                     "probabilities",
                 ],
                 [s1_intensity, 1.0 - s1_intensity],
-            )
+            ),
+            (["RunnerParameters", "workload_events"], workload_events),
         ],
         editor_type=doc_helper.JsonEditor,
     )
@@ -93,11 +100,11 @@ equal_distribution_template = """
 """
 
 templates = {
-    'node_selector': node_selector_template,
-    'equal_distribution': equal_distribution_template,
-    None: ""
+    "node_selector": node_selector_template,
+    "equal_distribution": equal_distribution_template,
+    None: "",
 }
-used_template= templates[args.node_selector_method]
+used_template = templates[args.node_selector_method]
 
 start_time = datetime.datetime.now()
 
@@ -109,19 +116,25 @@ exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
 write_tmp_deployment_template(used_template)
+k8s_params_file_path = f"{args.k8s_param_path}.tmp"
+exp_helper.write_tmp_k8s_params(
+    args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
+)
 
 # Executes experiments.
 experimental_results = []
-for i in range(args.simulation_steps + 1):
-    write_tmp_runner_params_for_simulation_step(i)
+all_steps = list(range(args.simulation_steps + 1))
+random.shuffle(all_steps)
+today = datetime.datetime.now()
+today = today.strftime("%Y_%m_%d")
+for i in all_steps:
+    write_tmp_runner_params_for_simulation_step(i, args.workload_events)
     exp_helper.restart_deployment("gateway-aggregator")
-    today = datetime.datetime.now()
-    today = today.strftime("%Y_%m_%d")
     exp_helper.run_experiment2(
-        args.k8s_param_path,
+        k8s_params_file_path,
         args.tmp_runner_param_file_path,
         args.yaml_builder_path,
-        f"{BASE_FOLDER}/results/{today}/{i}_steps/",
+        f"{BASE_FOLDER}/results/{today}/{args.name}/{i}_steps/",
         args.wait_for_pods_delay,
     )
     results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)
@@ -136,12 +149,14 @@ for i in range(args.simulation_steps + 1):
 # Visualizes results.
 print(experimental_results)
 vis_helper.visualize_all_data_and_stitch(
-    experimental_results, output_file_directory=f"{BASE_FOLDER}/results/"
+    experimental_results,
+    output_file_directory=f"{BASE_FOLDER}/results/{today}/{args.name}/",
 )
 
 # Clean up temp files.
 os.remove(args.tmp_runner_param_file_path)
 os.remove(args.tmp_base_worker_model_file_path)
+os.remove(k8s_params_file_path)
 if os.path.exists(args.tmp_aggregator_service_path):
     os.remove(args.tmp_aggregator_service_path)
 
