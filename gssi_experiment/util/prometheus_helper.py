@@ -91,7 +91,7 @@ def _parse_prometheus_cpu_utilization_csv(input_path: str, output_path: str):
             data_row = [formatted_timestamp, *data_row]
             csv_writer.writerow(data_row)
             counter += 1
-        print(f'Wrote {counter} entries.')
+        print(f'Wrote {counter} CPU utilization entries.')
 
 
 # Test code
