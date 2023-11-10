@@ -125,6 +125,7 @@ exp_helper.write_tmp_k8s_params(
 experimental_results = []
 all_steps = list(range(args.simulation_steps + 1))
 random.shuffle(all_steps)
+print(f'{all_steps=}')
 today = datetime.datetime.now()
 today = today.strftime("%Y_%m_%d")
 for i in all_steps:
