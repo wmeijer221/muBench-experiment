@@ -5,7 +5,6 @@ Implements some reusable functionality for experimentation.
 import csv
 import datetime
 import os
-import shutil
 from subprocess import Popen
 from typing import Dict, Tuple, Generator
 from time import sleep
@@ -102,7 +101,7 @@ def run_experiment2(
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
     fetch_start = start_time - datetime.timedelta(minutes=2)
     fetch_end = end_time + datetime.timedelta(minutes=2)
-    print(f"Waiting {prometheus_fetch_delay} seconds before fetching results.")
+    print(f"Waiting {prometheus_fetch_delay} seconds before fetching Prometheus data.")
     sleep(prometheus_fetch_delay)
     fetch_service_cpu_utilization(cpu_utilization_output_path, fetch_start, fetch_end)
 
@@ -235,9 +234,3 @@ def calculate_basic_statistics(
             results[key] = (s1_intensity, mn, mx, avg, std)
             print(f"{s1_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
         return results
-
-
-# _rewrite_mubench_results(
-#     "./gssi_experiment/gateway_aggregator/results/2023_11_10/0_steps/mubench_results.csv",
-#     "./gssi_experiment/gateway_aggregator/results/2023_11_10/0_steps/mubench_results_rewrite.csv",
-# )
