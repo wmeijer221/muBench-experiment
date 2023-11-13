@@ -18,8 +18,8 @@ from gssi_experiment.util.util import (
 dotenv.load_dotenv()
 
 DEFAULT_STEP_SIZE_IN_MINUTES = 2
-DEFAULT_TARGET_ENDPOINT = "90.147.115.229:30000"
-# DEFAULT_TARGET_ENDPOINT = "192.168.49.2:30000"
+# DEFAULT_TARGET_ENDPOINT = "90.147.115.229:30000"
+DEFAULT_TARGET_ENDPOINT = "192.168.49.2:30000"
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
@@ -79,7 +79,7 @@ def _parse_prometheus_cpu_utilization_csv(input_path: str, output_path: str):
     # Write parsed CSV data.
     with open(output_path, "w+", encoding="utf-8") as output_file:
         csv_writer = csv.writer(output_file)
-        csv_writer.writerow(containers)
+        csv_writer.writerow(['timestamp', *containers])
         # The first element is the timestamp.
         counter = 0
         sorting_key = lambda datapoint: datapoint[0]
