@@ -108,8 +108,13 @@ used_template = templates[args.node_selector_method]
 
 start_time = datetime.datetime.now()
 
-ga_service_yaml_path = exp_helper.write_tmp_service_params_for_node_selector(
-    args.aggregator_service_path, args.tmp_aggregator_service_path, args.node_selector
+ga_service_yaml_path = (
+    exp_helper.write_tmp_service_params_for_node_selector_and_replicas(
+        args.aggregator_service_path,
+        args.tmp_aggregator_service_path,
+        args.node_selector,
+        args.replicas,
+    )
 )
 exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
 exp_helper.write_tmp_work_model_for_trials(
@@ -125,7 +130,7 @@ exp_helper.write_tmp_k8s_params(
 experimental_results = []
 all_steps = list(range(args.simulation_steps + 1))
 random.shuffle(all_steps)
-print(f'{all_steps=}')
+print(f"{all_steps=}")
 today = datetime.datetime.now()
 today = today.strftime("%Y_%m_%d")
 for i in all_steps:
