@@ -94,7 +94,10 @@ target_nodes = "".join(target_nodes)
 equal_distribution_template = equal_distribution_template.format(
     target_nodes=target_nodes
 )
-# Adding this 'forces' (sort of) nodes to be spread across different nodes.
+# Adding this 'forces' (sort of) nodes to be spread across different nodes
+# (this is a bugged k8s feature though as it works during the initial deployment
+# but not during re-deployments; i.e., if you want to ensure this, you have to delete
+# a deployment, wait for it to be gone, and only then re-apply it).
 topology_spread_template = """
   topologySpreadConstraints:
   - maxSkew: 1
