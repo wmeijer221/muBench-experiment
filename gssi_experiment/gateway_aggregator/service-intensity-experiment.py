@@ -120,7 +120,6 @@ ga_service_yaml_path = (
         args.replicas,
     )
 )
-exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
 exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
@@ -139,7 +138,7 @@ today = datetime.datetime.now()
 today = today.strftime("%Y_%m_%d")
 for i in all_steps:
     write_tmp_runner_params_for_simulation_step(i, args.workload_events)
-    exp_helper.restart_deployment("gateway-aggregator")
+    exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
     exp_helper.run_experiment2(
         k8s_params_file_path,
         args.tmp_runner_param_file_path,

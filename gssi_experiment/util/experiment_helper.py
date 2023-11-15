@@ -227,7 +227,8 @@ def apply_k8s_yaml_file(file_path: str, sleep_between_reapply: int = 30):
     print(f'Sleeping {sleep_between_reapply} seconds before reapplying "{file_path}".')
     sleep(sleep_between_reapply)
     # Applies the new one.
-    args = ["kubectl", "apply", "-f", file_path]
+    print("\n\n\n\n" + "#" * 10 + "\nIm applying stuff!\n" + "#" * 10 + "\n\n\n\n")
+    args = ["kubectl", "create", "-f", file_path]
     proc = Popen(args)
     statuscode = proc.wait()
     if statuscode != 0:
