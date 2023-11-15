@@ -200,6 +200,7 @@ def main():
                 print("Automatically redeploying in 30 seconds!")
                 print("######################")
                 sleep(30)
+                args.clean_deployment = False
                 main()
         else:
             print("...\nOk you want to keep the OLD application! Bye!")
