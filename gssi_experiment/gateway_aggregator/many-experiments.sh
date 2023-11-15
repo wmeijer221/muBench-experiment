@@ -16,7 +16,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -29,7 +28,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -42,7 +40,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -55,20 +52,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
-        --steps 25 \
-        --trials $TRIALS \
-        --seed $counter \
-        --workload-events $WORKLOAD \
-        --cpu-limit 500m \
-        --replicas 1 \
-        --name "large_experiment_2/500m_1rep_20trials/run_$VARIABLE"
-    let counter++
-
-    python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
-        --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -81,7 +64,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -94,7 +76,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -107,7 +88,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -120,7 +100,6 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE \
-        --node-selector-method node_selector \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -132,8 +111,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
-        --node-selector-method equal_distribution \
+        --node-selector $BIG_NODE,node-2 \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -145,8 +123,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
-        --node-selector-method equal_distribution \
+        --node-selector $BIG_NODE,node-2,node-1 \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -158,8 +135,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
-        --node-selector-method equal_distribution \
+        --node-selector $BIG_NODE,node-2 \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -171,8 +147,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
-        --node-selector-method equal_distribution \
+        --node-selector $BIG_NODE,node-2,node-1 \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -182,5 +157,17 @@ do
         --name "large_experiment_2/no_cpu_cap_3rep_20trials/run_$VARIABLE"
     let counter++
 
-done
+    # This experiment is placed at the bottom because it's very slow.
+    python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
+        --wait-for-pods $DELAY \
+        --node-selector $BIG_NODE \
+        --steps 25 \
+        --trials $TRIALS \
+        --seed $counter \
+        --workload-events $WORKLOAD \
+        --cpu-limit 500m \
+        --replicas 1 \
+        --name "large_experiment_2/500m_1rep_20trials/run_$VARIABLE"
+    let counter++
 
+done

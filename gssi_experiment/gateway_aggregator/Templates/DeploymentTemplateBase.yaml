@@ -29,9 +29,6 @@ spec:
       terminationGracePeriodSeconds : 3
       #schedulerName: no-balancing-scheduler
       
-      # GSSI Custom field.
-      {{NODE_SELECTOR_FIELD}}
-
       containers:
         - name: {{SERVICE_NAME}}
           image: {{IMAGE}}

@@ -25,13 +25,6 @@ parser.add_argument(
     dest="tmp_aggregator_service_path",
     default=f"{BASE_FOLDER}/tmp_service.yaml",
 )
-parser.add_argument(
-    "--node-selector-method",
-    action="store",
-    dest="node_selector_method",
-    default=None,
-    help="Specifies the node selector behaviour of the service deployments.",
-)
 args = parser.parse_args()
 args.simulation_steps = max(args.simulation_steps, 1)
 
@@ -73,7 +66,7 @@ def write_tmp_deployment_template(template: "str | None"):
         data = base_file.read()
 
     setting = template if template else ""
-    data = data.replace("{{NODE_SELECTOR_FIELD}}", setting)
+    data = data.replace("{{NODE_AFFINITY}}", setting)
     # writes data
     deployment_path = f"{args.yaml_builder_path}/Templates/DeploymentTemplate.yaml"
     with open(deployment_path, "w+", encoding="utf-8") as output_file:
@@ -82,29 +75,26 @@ def write_tmp_deployment_template(template: "str | None"):
 
 # Runs the experiment
 
-
-# Overwrites data.
-node_selector_template = f"""
-      nodeSelector:
-        kubernetes.io/hostname: {args.node_selector}
-"""
-
 equal_distribution_template = """
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              app: {{SERVICE_NAME}}
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: {target_nodes}
 """
+target_node_template = """
+            - {name}"""
+target_nodes = [
+    target_node_template.format(name=node) for node in args.node_selector.split(",")
+]
+target_nodes = "".join(target_nodes)
+equal_distribution_template = equal_distribution_template.format(
+    target_nodes=target_nodes
+)
 
-templates = {
-    "node_selector": node_selector_template,
-    "equal_distribution": equal_distribution_template,
-    None: "",
-}
-used_template = templates[args.node_selector_method]
 
 start_time = datetime.datetime.now()
 
@@ -120,7 +110,7 @@ exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
 exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
-write_tmp_deployment_template(used_template)
+write_tmp_deployment_template(equal_distribution_template)
 k8s_params_file_path = f"{args.k8s_param_path}.tmp"
 exp_helper.write_tmp_k8s_params(
     args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas

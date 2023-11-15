@@ -40,10 +40,11 @@ spec:
     metadata:
       labels:
         app: gateway-aggregator
-        prometheus.io/scrape: 'true'
+        prometheus.io/scrape: "true"
       annotations:
-        prometheus.io/scrape: 'true'
-        prometheus.io/port: '8080'
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+
     spec:
       containers:
       - name: gateway-aggregator
