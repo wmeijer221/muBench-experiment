@@ -15,7 +15,7 @@ import argparse
 import argcomplete
 
 
-def main():
+def main(force_no_clean: bool = False):
     ### Functions
     def create_deployment_config():
         print("---")
@@ -101,6 +101,7 @@ def main():
 
     argcomplete.autocomplete(parser)
 
+
     try:
         args = parser.parse_args()
     except ImportError:
@@ -112,6 +113,9 @@ def main():
         parser.print_help()
     except Exception as err:
         print("Error:", err)
+
+    if force_no_clean:
+        args.clean_deployment = False
 
     #### input params
     parameters_file_path = args.parameters_file
@@ -200,8 +204,7 @@ def main():
                 print("Automatically redeploying in 30 seconds!")
                 print("######################")
                 sleep(30)
-                args.clean_deployment = False
-                main()
+                main(force_no_clean=True)
         else:
             print("...\nOk you want to keep the OLD application! Bye!")
 
