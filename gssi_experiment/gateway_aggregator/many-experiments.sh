@@ -4,6 +4,8 @@
 
 DELAY=60
 BIG_NODE=node-3
+SMALL_NODE_1=node-1
+SMALL_NODE_2=node-2
 WORKLOAD=10000
 # This is 17 because at trials=25 the most accurate model lay at vCPU limit=1500m
 # i.e., if we want to model for 1 vCPU, the load should be reduced by 1/3; i.e. to trials~17.
@@ -15,7 +17,7 @@ for VARIABLE in 1 2 3
 do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -27,7 +29,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -39,7 +41,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -51,7 +53,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -63,7 +65,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -75,7 +77,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -87,7 +89,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -99,7 +101,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -111,7 +113,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,node-2 \
+        --node-selector $BIG_NODE,$SMALL_NODE_1,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -123,7 +125,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,node-2,node-1 \
+        --node-selector $BIG_NODE,$SMALL_NODE_1,$SMALL_NODE_2,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -135,7 +137,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,node-2 \
+        --node-selector $BIG_NODE,$SMALL_NODE_1,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -147,7 +149,7 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,node-2,node-1 \
+        --node-selector $BIG_NODE,$SMALL_NODE_1,$SMALL_NODE_2,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
@@ -160,7 +162,7 @@ do
     # This experiment is placed at the bottom because it's very slow.
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE \
+        --node-selector $BIG_NODE,minikube \
         --steps 25 \
         --trials $TRIALS \
         --seed $counter \
