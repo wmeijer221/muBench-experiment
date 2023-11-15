@@ -143,7 +143,7 @@ for i in all_steps:
         k8s_params_file_path,
         args.tmp_runner_param_file_path,
         args.yaml_builder_path,
-        f"{BASE_FOLDER}/results/{today}/{args.name}/{i}_steps/",
+        f"{BASE_FOLDER}/results/{args.name}/{today}/{i}_steps/",
         args.wait_for_pods_delay,
     )
     results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)
