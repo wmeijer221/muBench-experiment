@@ -94,6 +94,17 @@ target_nodes = "".join(target_nodes)
 equal_distribution_template = equal_distribution_template.format(
     target_nodes=target_nodes
 )
+# Adding this 'forces' (sort of) nodes to be spread across different nodes.
+topology_spread_template = """
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        type: {{SERVICE_NAME}}
+"""
+equal_distribution_template += topology_spread_template
 
 
 start_time = datetime.datetime.now()
