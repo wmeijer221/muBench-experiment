@@ -3,6 +3,8 @@ import os
 import json
 import shutil
 
+from time import sleep
+
 # appending a path
 sys.path.append("../../")
 
@@ -195,8 +197,9 @@ def main():
 
             if args.auto_redeploy:
                 print("######################")
-                print("Automatically redeploying!")
+                print("Automatically redeploying in 30 seconds!")
                 print("######################")
+                sleep(30)
                 main()
         else:
             print("...\nOk you want to keep the OLD application! Bye!")

@@ -174,6 +174,7 @@ def _run_experiment(
             "-r",
             "-ybp",
             yaml_builder_path,
+            "--clean-deployment",
         ]
         current_proc = Popen(args)
         current_proc.wait()
@@ -218,7 +219,7 @@ def _rewrite_mubench_results(input_path: str, output_path: str):
 def apply_k8s_yaml_file(file_path: str, sleep_between_reapply: int = 30):
     """Applies a yaml field using kubectl"""
     # Deletes old deployment
-    args = ['kubectl', 'delete', '-f', file_path]
+    args = ["kubectl", "delete", "-f", file_path]
     proc = Popen(args)
     statuscode = proc.wait()
     if statuscode != 0:
