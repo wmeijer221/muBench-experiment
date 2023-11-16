@@ -9,6 +9,16 @@ import gssi_experiment.util.experiment_helper as exp_helper
 import gssi_experiment.util.experiment_visualization_helper as vis_helper
 import gssi_experiment.util.args_helper as args_helper
 
+start_run_message = """
+
+###############################################
+####            STARTING NEW RUN            ###
+###############################################
+
+"""
+
+print(start_run_message)
+
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 print(f"{BASE_FOLDER=}")
 

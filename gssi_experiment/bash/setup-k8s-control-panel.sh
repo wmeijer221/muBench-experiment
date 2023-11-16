@@ -11,6 +11,8 @@ chmod 700 get_helm.sh
 
 
 echo Setting up full monitoring
-chmod +x ./Monitoring/kubernetes-full-monitoring/monitoring-install.sh
+cd ~/muBench-experiment/Monitoring/kubernetes-full-monitoring
+chmod +x ./monitoring-install.sh
+cd ~/muBench-experiment
 ./Monitoring/kubernetes-full-monitoring/monitoring-install.sh
 

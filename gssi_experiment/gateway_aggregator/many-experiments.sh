@@ -1,6 +1,11 @@
 # Configurations of big experiment #1: workload=15000, trials=25 (effectively randomly chosen).
 # Configurations of big experiment #2: workload=10000, trials=17 (chosen and reduce time to emphasize vCPU=1, respectively).
 
+LOGS_PATH=./gssi_experiment/gateway_aggregator/results/large_experiment_2/logs.out
+echo > ./gssi_experiment/gateway_aggregator/results/large_experiment_2/logs.out
+
+{
+
 
 DELAY=60
 BIG_NODE=node-3
@@ -173,3 +178,5 @@ do
     let counter++
 
 done
+
+} | tee -a $LOGS_PATH

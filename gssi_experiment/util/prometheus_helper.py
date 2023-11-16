@@ -63,6 +63,7 @@ def _fetch_service_cpu_utilization_from_prometheus(
         + f"[{step_size_in_minutes}m])/{step_size_in_seconds})",
     ]
     print(args)
+    print(f'Outputting raw Prometheus data to "{output_path}".')
     with open(output_path, "w+", encoding="utf-8") as output_file:
         proc = Popen(args, stdout=output_file)
         proc.wait()
