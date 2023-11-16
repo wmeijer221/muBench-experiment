@@ -1,11 +1,8 @@
-# Configurations of big experiment #1: workload=15000, trials=25 (effectively randomly chosen).
-# Configurations of big experiment #2: workload=10000, trials=17 (chosen and reduce time to emphasize vCPU=1, respectively).
-
 LOGS_PATH=./gssi_experiment/gateway_offloading/results/small_experiment_1/logs.out
 mkdir -p ./gssi_experiment/gateway_offloading/results/small_experiment_1
 echo > ./gssi_experiment/gateway_offloading/results/small_experiment_1/logs.out
 
-# {
+{
 
 
 DELAY=15
@@ -39,4 +36,4 @@ do
 
 done
 
-# } | tee -a $LOGS_PATH
+} | tee -a $LOGS_PATH
