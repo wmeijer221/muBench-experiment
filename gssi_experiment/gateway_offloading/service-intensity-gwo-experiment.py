@@ -44,7 +44,12 @@ def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
                     "probabilities",
                 ],
                 [rq_type_intensity, 1.0 - rq_type_intensity],
-            )
+            ),
+            (
+                # TODO: move this to `run_experiment2()` to avoid duplicate code in experiment files.
+                ["RunnerParameters", "ms_access_gateway"],
+                exp_helper.get_server_endpoint(),
+            ),
         ],
         editor_type=doc_helper.JsonEditor,
     )
@@ -81,6 +86,9 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> None:
 
 start_time = datetime.datetime.now()
 
+exp_helper.write_tmp_work_model_for_trials(
+    args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
+)
 
 # Executes experiments.
 (gw_min, gw_max) = (int(ele) for ele in args.gateway_load_range[1:-1].split(","))
@@ -98,6 +106,7 @@ for j in range(gw_min, gw_max + 1):
             args.k8s_param_path,
             args.tmp_runner_param_file_path,
             args.yaml_builder_path,
+            exp_helper.get_output_folder(BASE_FOLDER, args.name, i),
             args.wait_for_pods_delay,
         )
         results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)

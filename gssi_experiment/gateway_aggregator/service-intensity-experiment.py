@@ -1,4 +1,31 @@
-"""Runs service intensity experiment and outputs results."""
+"""
+Runs service intensity experiment and outputs results.
+
+It tests the gateway aggregator deployment with a heterogeneous load to
+identify the behaviours in CPU utilization and response delay.
+The system deploys four services, three "worker" services (s1, s2, s3) and one
+gateway aggregator service which handles aggregate requests. In this context,
+a heterogeneous load refers to the weight that is put on the worker services.
+As such, requests can be S1-intensive and S3-intensive, respectively describing 
+the amount of computation required by either service (i.e., s1 intensive requests 
+require a lot of computation by s1 and little by s3). Here, S2 remains unaffected.
+
+This script itself does nothing regarding the deployment topology (meaning that it
+does not deploy the three services itself). The muBench deployment / setup is
+defined in the various json files contained in this file's containing folder.
+
+This script can be ran with various parameters. For these refer to `./many-experiment.sh`
+and the `args_helper`.
+
+The main lifecycle of this script is as follows:
+1. Generate template files based on the passed parameters.
+2. Iterate through the experiment `steps` number of times (i.e., the number of s1/s3-intensity
+   configurations that is considerd; in some sense the granularity of the study.)
+3. Create temporary runner parameters (workload etc.) and redeploy the various services.
+4. Run the experiment (contained in `experiment_helper` as this is re-used in other experiments.)
+5. Calculate some basic statistics.
+6. Clean up temporary files.
+"""
 
 import datetime
 import os
@@ -64,6 +91,10 @@ def write_tmp_runner_params_for_simulation_step(
                 [s1_intensity, 1.0 - s1_intensity],
             ),
             (["RunnerParameters", "workload_events"], workload_events),
+            (
+                ["RunnerParameters", "ms_access_gateway"],
+                exp_helper.get_server_endpoint(),
+            ),
         ],
         editor_type=doc_helper.JsonEditor,
     )
@@ -104,10 +135,11 @@ target_nodes = "".join(target_nodes)
 equal_distribution_template = equal_distribution_template.format(
     target_nodes=target_nodes
 )
-# Adding this 'forces' (sort of) nodes to be spread across different nodes
+# Adding this 'forces' pods to be spread across different nodes
 # (this is a bugged k8s feature though as it works during the initial deployment
 # but not during re-deployments; i.e., if you want to ensure this, you have to delete
-# a deployment, wait for it to be gone, and only then re-apply it).
+# a deployment, wait for it to be gone, and only then re-apply it; this is a known bug,
+# but k8s isn't prioritizing fixing it).
 topology_spread_template = """
   topologySpreadConstraints:
   - maxSkew: 1
@@ -144,8 +176,6 @@ experimental_results = []
 all_steps = list(range(args.simulation_steps + 1))
 random.shuffle(all_steps)
 print(f"{all_steps=}")
-today = datetime.datetime.now()
-today = today.strftime("%Y_%m_%d")
 for i in all_steps:
     write_tmp_runner_params_for_simulation_step(i, args.workload_events)
     exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
@@ -153,7 +183,7 @@ for i in all_steps:
         k8s_params_file_path,
         args.tmp_runner_param_file_path,
         args.yaml_builder_path,
-        f"{BASE_FOLDER}/results/{args.name}/{today}/{i}_steps/",
+        exp_helper.get_output_folder(BASE_FOLDER, args.name, i),
         args.wait_for_pods_delay,
     )
     results = exp_helper.calculate_basic_statistics(i, args.simulation_steps)
@@ -169,7 +199,7 @@ for i in all_steps:
 print(experimental_results)
 vis_helper.visualize_all_data_and_stitch(
     experimental_results,
-    output_file_directory=f"{BASE_FOLDER}/results/{today}/{args.name}/",
+    output_file_directory=exp_helper.get_output_folder(BASE_FOLDER, args.name),
 )
 
 # Clean up temp files.

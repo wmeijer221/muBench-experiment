@@ -10,7 +10,9 @@ from typing import Dict, Tuple, Generator
 from time import sleep
 import itertools
 import json
+from os import getenv
 
+import dotenv
 import numpy as np
 
 import gssi_experiment.util.doc_helper as doc_helper
@@ -18,6 +20,9 @@ from gssi_experiment.util.prometheus_helper import (
     fetch_service_cpu_utilization,
     TIME_FORMAT,
 )
+
+
+dotenv.load_dotenv()
 
 
 def write_tmp_service_params_for_node_selector_and_replicas(
@@ -68,8 +73,9 @@ def write_tmp_service_params_for_node_selector_and_replicas(
 
 def write_tmp_work_model_for_trials(
     base_worker_model_file_name: str, tmp_base_worker_model_file_path: str, trials: int
-) -> None:
+) -> str:
     """Overwrites the trials field in the WorkModel json file and outputs it to a tmp file."""
+    # TODO: get rid of the tmp_base_worker_model_file_path parameter / command-line argument as it's bloat; consider replacing it with `tempfile`.
     base_path = [
         "__service",  # is overwritten
         "internal_service",
@@ -281,3 +287,26 @@ def calculate_basic_statistics(
             results[key] = (s1_intensity, mn, mx, avg, std)
             print(f"{s1_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
         return results
+
+
+def get_output_folder(
+    base_folder: str, name: str, step_idx: "int | None" = None
+) -> str:
+    """Returns a folder name."""
+    today = datetime.datetime.now()
+    today = today.strftime("%Y_%m_%d")
+    if step_idx is None:
+        path = f"{base_folder}/results/{name}/{today}/"
+    else:
+        path = f"{base_folder}/results/{name}/{today}/{step_idx}_steps/"
+    path = os.path.abspath(path)
+    return path
+
+
+def get_server_endpoint() -> str:
+    key = "SERVER_API_ENDPOINT"
+    server_endpoint = getenv(key)
+    if server_endpoint is None:
+        raise ValueError(f'Environment variable "{key}" is not set.')
+    print(f'Retrieved server endpoint: "{server_endpoint}".')
+    return server_endpoint
