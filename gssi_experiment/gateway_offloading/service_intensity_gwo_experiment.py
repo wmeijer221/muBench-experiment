@@ -94,10 +94,16 @@ start_time = datetime.datetime.now()
 exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
+k8s_params_file_path = f"{args.k8s_param_path}.tmp"
+exp_helper.write_tmp_k8s_params(
+    args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
+)
 
-# Executes experiments.
-(gw_min, gw_max) = (int(ele) for ele in args.gateway_load_range[1:-1].split(","))
-for j in range(gw_min, gw_max + 1):
+# Executes experiments.write_tmp_deployment_template
+(gw_min, gw_max, gw_step) = (int(ele) for ele in args.gateway_load_range[1:-1].split(","))
+gateway_steps = list(range(gw_min, gw_max + 1, gw_step))
+print(f'gateway range / interval: {gateway_steps}')
+for j in gateway_steps:
     experimental_results = []
     all_steps = list(range(args.simulation_steps + 1))
     random.shuffle(all_steps)

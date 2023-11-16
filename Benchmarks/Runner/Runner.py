@@ -53,7 +53,7 @@ def do_requests(
     processed_requests.increase()
     try:
         now_ms = time.time_ns() // 1_000_000
-        if runner_type == "greedy":
+        if runner_type in {"greedy", "timely_greedy"}:
             pending_requests.increase()
 
         headers = query_builder.build_headers()
@@ -99,6 +99,7 @@ def job_assignment(
     local_latency_stats,
     query_builder: qsb.HeaderFactory,
     endpoint_picker: callable,
+    on_complete_callback: "callable | None",
 ):
     global timing_error_requests, pending_requests
     try:
@@ -110,12 +111,14 @@ def job_assignment(
             query_builder,
             endpoint_picker,
         )
+        if on_complete_callback:
+            worker.add_done_callback(on_complete_callback)
         v_futures.append(worker)
-        if runner_type != "greedy":
+        if runner_type not in {"greedy", "timely_greedy"}:
             pending_requests.increase()
         if pending_requests.value > threads:
             # maximum capacity of thread pool reached, request is queued (not an issue for greedy runner)
-            if runner_type != "greedy":
+            if runner_type not in {"greedy", "timely_greedy"}:
                 timing_error_requests += 1
                 raise TimingError(event["time"])
     except TimingError as err:
@@ -202,6 +205,121 @@ def select_endpoint_by_header(
     return event["service"]["services"][headers[header_key]]
 
 
+runner_start_time: datetime = None
+timely_runner_is_done: bool = False
+
+def timely_greedy_runner():
+    """A greedy runner that runs for some amount of time."""
+    global start_time, stats, local_latency_stats, runner_parameters, header_builder, endpoint_picker, runner_start_time
+
+    print(f"{runner_parameters=}")
+
+    endpoint_picker = None
+    if "ingress_service" in runner_parameters.keys():
+        endpoint_picker = select_endpoint_simple
+        srv = runner_parameters["ingress_service"]
+    else:
+        endpoint_picker = select_endpoint_simple
+        srv = "s0"
+
+    if isinstance(srv, dict):
+        endpoint_picker = partial(
+            select_endpoint_by_header, header_key=srv["header_key"]
+        )
+
+    stats = list()
+    print("###############################################")
+    print("############   Run Forrest Run!!   ############")
+    print("###############################################")
+
+    s = sched.scheduler(time.time, time.sleep)
+    pool = ThreadPoolExecutor(threads)
+    futures: list[Future] = list()
+    event = {"service": srv, "time": 0}
+    slow_start_end = 32  # number requests with initial delays
+    slow_start_delay = 0.1
+
+    def on_response_received(_fut: Future):
+        global runner_start_time, timely_runner_is_done
+        runner_current_time = datetime.now()
+        runner_passed_time = runner_current_time - runner_start_time
+        runner_minutes_spent = runner_passed_time.seconds / 60.0
+        if not timely_runner_is_done and runner_minutes_spent > max_runner_time_in_minutes:
+            timely_runner_is_done = True
+            # Kills all of the remaining requests.
+            print(f"Passed the maximum time: {max_runner_time_in_minutes} minutes.")
+            pool.shutdown(wait=False)
+            for future in futures:
+                if not future.done():
+                    future.cancel()
+
+    try:
+        runner_start_time = datetime.now()
+        # put every request in the thread pool scheduled at time 0 (in case with initial slow start spread to reduce initial concurrency)
+        for i in range(workload_events):
+            if i < slow_start_end:
+                event_time = i * slow_start_delay
+            s.enter(
+                delay=event_time,
+                priority=1,
+                action=job_assignment,
+                argument=(
+                    pool,
+                    futures,
+                    event,
+                    stats,
+                    local_latency_stats,
+                    header_builder,
+                    endpoint_picker,
+                    on_response_received,
+                ),
+            )
+
+        start_time = time.time()
+        print("Start Time:", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
+
+        s.run()
+
+        wait(futures)
+    except KeyboardInterrupt:
+        pool.shutdown(wait=True)
+        for future in futures:
+            if not future.done():
+                future.cancel()
+        raise
+
+    run_duration_sec = time.time() - start_time
+    avg_latency = 1.0 * sum(local_latency_stats) / len(local_latency_stats)
+
+    print("###############################################")
+    print("###########   Stop Forrest Stop!!   ###########")
+    print("###############################################")
+
+    print(
+        "Run Duration (sec): %.6f" % run_duration_sec,
+        "Total Requests: %d - Error Request: %d - Timing Error Requests: %d - Average Latency (ms): %.6f - Request rate (req/sec) %.6f"
+        % (
+            workload_events,
+            error_requests.value,
+            timing_error_requests,
+            avg_latency,
+            1.0 * workload_events / run_duration_sec,
+        ),
+    )
+
+    if run_after_workload is not None:
+        args = {
+            "run_duration_sec": run_duration_sec,
+            "last_print_time_ms": last_print_time_ms,
+            "requests_processed": processed_requests,
+            "timing_error_number": timing_error_requests,
+            "total_request": workload_events,
+            "error_request": error_requests,
+            "runner_results_file": f"{output_path}/{result_file}.txt",
+        }
+        run_after_workload(args)
+
+
 def greedy_runner():
     global start_time, stats, local_latency_stats, runner_parameters, header_builder, endpoint_picker
 
@@ -255,7 +373,7 @@ def greedy_runner():
         print("Start Time:", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
 
         s.run()
-        
+
         wait(futures)
     except KeyboardInterrupt:
         pool.shutdown(wait=True, cancel_futures=True)
@@ -412,6 +530,12 @@ try:
     endpoint_selector = None
     runner_type = runner_parameters["workload_type"]  # {workload (default), greedy}
     workload_events = runner_parameters["workload_events"]  # n. request for greedy
+    max_runner_time_in_minutes = (
+        int(runner_parameters["max_runner_time_in_minutes"])
+        if "max_runner_time_in_minutes" in runner_parameters
+        else 0
+    )
+    print(f"{max_runner_time_in_minutes=}")
     ms_access_gateway = runner_parameters[
         "ms_access_gateway"
     ]  # nginx access gateway ip
@@ -462,6 +586,11 @@ start_time = 0.0
 
 if runner_type == "greedy":
     greedy_runner()
+    with open(f"{output_path}/{result_file}.txt", "w") as f:
+        f.writelines("\n".join(stats))
+
+elif runner_type == "timely_greedy":
+    timely_greedy_runner()
     with open(f"{output_path}/{result_file}.txt", "w") as f:
         f.writelines("\n".join(stats))
 

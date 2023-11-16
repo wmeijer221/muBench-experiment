@@ -5,8 +5,9 @@
             "SimulationWorkspace/workload.json"
         ],
         "workload_rounds": 1,
-        "workload_type": "greedy",
+        "workload_type": "timely_greedy",
         "workload_events": 8000,
+        "max_runner_time_in_minutes": 1,
         "thread_pool_size": 16,
         "result_file": "result",
         "ingress_service": "gw",
@@ -26,10 +27,5 @@
             }
         ]
     },
-    "OutputPath": "SimulationWorkspace/Result",
-    "_AfterWorkloadFunction": {
-        "_comment": "remove _ from the object name to execute the funcions",
-        "file_path": "Function",
-        "function_name": "get_prometheus_stats"
-    }
+    "OutputPath": "SimulationWorkspace/Result"
 }
