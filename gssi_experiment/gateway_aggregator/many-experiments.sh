@@ -2,6 +2,7 @@
 # Configurations of big experiment #2: workload=10000, trials=17 (chosen and reduce time to emphasize vCPU=1, respectively).
 
 LOGS_PATH=./gssi_experiment/gateway_aggregator/results/large_experiment_2/logs.out
+mkdirs ./gssi_experiment/gateway_aggregator/results/large_experiment_2
 echo > ./gssi_experiment/gateway_aggregator/results/large_experiment_2/logs.out
 
 {
