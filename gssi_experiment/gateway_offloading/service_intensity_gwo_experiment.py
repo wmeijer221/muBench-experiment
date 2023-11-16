@@ -2,6 +2,7 @@
 
 import datetime
 import os
+import random
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
@@ -24,6 +25,9 @@ parser.add_argument(
 args = parser.parse_args()
 args.simulation_steps = max(args.simulation_steps, 1)
 
+random.seed(args.seed)
+print(f"{args.seed=}")
+
 
 def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
     """1: prepares the experiment."""
@@ -45,6 +49,7 @@ def write_tmp_runner_params_for_simulation_step(step_idx: int) -> None:
                 ],
                 [rq_type_intensity, 1.0 - rq_type_intensity],
             ),
+            (["RunnerParameters", "workload_events"], args.workload_events),
             (
                 # TODO: move this to `run_experiment2()` to avoid duplicate code in experiment files.
                 ["RunnerParameters", "ms_access_gateway"],
@@ -94,7 +99,10 @@ exp_helper.write_tmp_work_model_for_trials(
 (gw_min, gw_max) = (int(ele) for ele in args.gateway_load_range[1:-1].split(","))
 for j in range(gw_min, gw_max + 1):
     experimental_results = []
-    for i in range(args.simulation_steps + 1):
+    all_steps = list(range(args.simulation_steps + 1))
+    random.shuffle(all_steps)
+    print(f"{all_steps=}")
+    for i in all_steps:
         write_tmp_runner_params_for_simulation_step(i)
         write_tmp_work_model_for_offload(j)
         exp_helper.write_tmp_work_model_for_trials(
