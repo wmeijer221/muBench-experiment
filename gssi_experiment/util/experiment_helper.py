@@ -6,7 +6,7 @@ import csv
 import datetime
 import os
 from subprocess import Popen
-from typing import Dict, Tuple, Generator
+from typing import Dict, Tuple, Generator, List
 from time import sleep
 import itertools
 import json
@@ -72,7 +72,12 @@ def write_tmp_service_params_for_node_selector_and_replicas(
 
 
 def write_tmp_work_model_for_trials(
-    base_worker_model_file_name: str, tmp_base_worker_model_file_path: str, trials: int
+    base_worker_model_file_name: str,
+    tmp_base_worker_model_file_path: str,
+    trials: int,
+    # TODO: Remove these two defaults
+    services: List[str] = ["s1", "s2", "s3"],
+    request_types: List[str] = ["s1_intensive", "s3_intensive"],
 ) -> str:
     """Overwrites the trials field in the WorkModel json file and outputs it to a tmp file."""
     # TODO: get rid of the tmp_base_worker_model_file_path parameter / command-line argument as it's bloat; consider replacing it with `tempfile`.
@@ -84,8 +89,6 @@ def write_tmp_work_model_for_trials(
         "cpu_stress",
         "trials",
     ]
-    services = ["s1", "s2", "s3"]
-    request_types = ["s1_intensive", "s3_intensive"]
 
     def nested_key_generator() -> Generator:
         for service, request_type in itertools.product(services, request_types):
@@ -93,10 +96,27 @@ def write_tmp_work_model_for_trials(
             base_path[2] = request_type
             yield (base_path, trials)
 
+    base_case = [
+        "__service",  # is overwritten
+        "internal_service",
+        "loader",
+        "cpu_stress",
+        "trials",
+    ]
+
+    def nested_base_case_generator() -> Generator:
+        for service in services:
+            base_case[0] = service
+            yield (base_case, trials)
+
+    overwritten_fields = itertools.chain(
+        nested_key_generator(), nested_base_case_generator()
+    )
+
     doc_helper.write_concrete_data_document(
         base_worker_model_file_name,
         tmp_base_worker_model_file_path,
-        overwritten_fields=nested_key_generator(),
+        overwritten_fields=overwritten_fields,
         editor_type=doc_helper.JsonEditor,
     )
 

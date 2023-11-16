@@ -109,6 +109,8 @@ for j in range(gw_min, gw_max + 1):
             args.tmp_base_worker_model_file_path,
             args.tmp_base_worker_model_file_path,
             args.trials,
+            services=['gw', 's1', 's2', 's3'],
+            request_types=[]
         )
         exp_helper.run_experiment2(
             args.k8s_param_path,
