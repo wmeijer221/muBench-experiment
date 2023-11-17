@@ -1,11 +1,11 @@
 #! /bin/bash
 
-BASE_PATH=./gssi_experiment/gateway_offloading/results/small_experiment_2
+BASE_PATH=./gssi_experiment/gateway_offloading/results/small_experiment_3
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
 echo > $LOGS_PATH
 
-DELAY=15
+DELAY=60
 BIG_NODE=node-3
 SMALL_NODE_1=node-1
 SMALL_NODE_2=node-2
@@ -18,7 +18,7 @@ python3 ./gssi_experiment/gateway_offloading/experiment_runner_wrapper.py \
     --wait-for-pods $DELAY \
     --seed $counter \
     --steps $STEPS \
-    --gateway-load [0,10,2] \
+    --gateway-load [0,10,1] \
     --node-selector $BIG_NODE,minikube \
     --replicas 1 \
     --cpu-limit 1000m \

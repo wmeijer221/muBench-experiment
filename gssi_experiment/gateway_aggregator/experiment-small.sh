@@ -1,13 +1,13 @@
 #! /bin/bash
 
-BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small
+BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small_3
 
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
 echo > $BASE_PATH/logs.out
 
 
-DELAY=15
+DELAY=60
 BIG_NODE=node-3
 SMALL_NODE_1=node-1
 SMALL_NODE_2=node-2
@@ -25,6 +25,6 @@ python3 ./gssi_experiment/gateway_aggregator/experiment_runner_wrapper.py \
     --seed $counter \
     --cpu-limit 1000m \
     --replicas 1 \
-    --name "experiment_small/1000m_1rep_17trials/run_$VARIABLE"
+    --name "experiment_small_3/1000m_1rep_17trials/run_$VARIABLE"
 let counter++
 
