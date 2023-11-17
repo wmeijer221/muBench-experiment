@@ -1,9 +1,10 @@
 # Configurations of big experiment #1: workload=15000, trials=25 (effectively randomly chosen).
 # Configurations of big experiment #2: workload=10000, trials=17 (chosen and reduce time to emphasize vCPU=1, respectively).
 
-LOGS_PATH=./gssi_experiment/gateway_aggregator/results/large_experiment_2/logs.out
-mkdirs ./gssi_experiment/gateway_aggregator/results/large_experiment_2
-echo > ./gssi_experiment/gateway_aggregator/results/large_experiment_2/logs.out
+BASE_PATH=./gssi_experiment/gateway_aggregator/results/large_experiment_3
+LOGS_PATH=$BASE_PATH/logs.out
+mkdir -p $BASE_PATH
+echo > $BASE_PATH/logs.out
 
 {
 
@@ -15,7 +16,7 @@ SMALL_NODE_2=node-2
 WORKLOAD=30000
 # This is 17 because at trials=25 the most accurate model lay at vCPU limit=1500m
 # i.e., if we want to model for 1 vCPU, the load should be reduced by 1/3; i.e. to trials~17.
-TRIALS=17
+TRIALS=10
 STEPS=5
 
 let counter=1
@@ -34,7 +35,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 1000m \
         --replicas 1 \
-        --name "large_experiment_2/1000m_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/1000m_1rep_10trials/run_$VARIABLE"
     let counter++
 
     # This experiment is placed at the bottom because it's very slow.
@@ -47,7 +48,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 500m \
         --replicas 1 \
-        --name "large_experiment_2/500m_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/500m_1rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -59,7 +60,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 1500m \
         --replicas 1 \
-        --name "large_experiment_2/1500m_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/1500m_1rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -71,7 +72,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 2000m \
         --replicas 1 \
-        --name "large_experiment_2/2000m_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/2000m_1rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -83,7 +84,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 2500m \
         --replicas 1 \
-        --name "large_experiment_2/2500m_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/2500m_1rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -95,7 +96,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit '' \
         --replicas 1 \
-        --name "large_experiment_2/no_cpu_cap_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/no_cpu_cap_1rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -107,7 +108,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 1000m \
         --replicas 2 \
-        --name "large_experiment_2/1000m_2rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/1000m_2rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -119,7 +120,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit 1000m \
         --replicas 3 \
-        --name "large_experiment_2/1000m_3rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/1000m_3rep_10trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -131,7 +132,7 @@ do
         --workload-events $WORKLOAD \
         --cpu-limit '' \
         --replicas 3 \
-        --name "large_experiment_2/no_cpu_cap_3rep_20trials/run_$VARIABLE"
+        --name "large_experiment_3/no_cpu_cap_3rep_10trials/run_$VARIABLE"
     let counter++
 
 done
