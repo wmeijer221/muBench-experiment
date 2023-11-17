@@ -11,10 +11,6 @@
           "thread_pool_size": 1,
           "trials": 20
         },
-        "__sleep_stress": {
-          "run": true,
-          "sleep_time": 0.2
-        },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"
       }
@@ -64,10 +60,6 @@
           "thread_pool_size": 1,
           "trials": 20
         },
-        "__sleep_stress": {
-          "run": true,
-          "sleep_time": 0.2
-        },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"
       }
@@ -99,10 +91,6 @@
           "thread_pool_size": 1,
           "trials": 20
         },
-        "__sleep_stress": {
-          "run": true,
-          "sleep_time": 0.12
-        },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"
       }
@@ -126,10 +114,6 @@
           ],
           "thread_pool_size": 1,
           "trials": 20
-        },
-        "__sleep_stress": {
-          "run": true,
-          "sleep_time": 0.15
         },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"

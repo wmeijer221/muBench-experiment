@@ -2,6 +2,7 @@
 Implements general utility functions.
 """
 
+from datetime import datetime
 import io
 import math
 from numbers import Number
@@ -402,3 +403,32 @@ def merge_iterate_through_lists(
         for collection_index in collection.keys():
             element_pointers[collection_index] += 1
         yield lowest, collection
+
+
+def get_subfolders(parent_dir) -> Iterator[str]:
+    """Returns the folders in a directory."""
+    return [
+        f"{parent_dir}/{name}"
+        for name in os.listdir(parent_dir)
+        if os.path.isdir(f"{parent_dir}/{name}")
+    ]
+
+
+def iterate_through_nested_folders(base_folder: str, max_depth: int) -> Iterator[str]:
+    """Iterates through all folders with a certain depth from the specified base folder."""
+    sub_folders = get_subfolders(base_folder)
+    if max_depth > 0:
+        for subfolder in sub_folders:
+            for folder in iterate_through_nested_folders(subfolder, max_depth - 1):
+                yield folder
+    else:
+        for folder in get_subfolders(base_folder):
+            yield folder
+
+
+def lies_outside_timewindow(
+    timestamp: str, start: datetime, end: datetime, time_format: str
+) -> bool:
+    """Returns true if the provided timestamp lies outside the provided window."""
+    timestamp = datetime.strptime(timestamp, time_format)
+    return timestamp < start and timestamp > end

@@ -21,7 +21,7 @@ let counter=1
 RERUNS=3
 
 
-for VARIABLE in 1 ... $RERUNS
+for VARIABLE in {1..$RERUNS}
 do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
