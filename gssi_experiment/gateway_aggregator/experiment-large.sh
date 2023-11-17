@@ -12,15 +12,18 @@ DELAY=60
 BIG_NODE=node-3
 SMALL_NODE_1=node-1
 SMALL_NODE_2=node-2
-WORKLOAD=20000
+WORKLOAD=30000
 # This is 17 because at trials=25 the most accurate model lay at vCPU limit=1500m
 # i.e., if we want to model for 1 vCPU, the load should be reduced by 1/3; i.e. to trials~17.
 TRIALS=17
-STEPS=25
+STEPS=5
 
 let counter=1
 
-for VARIABLE in 1 2 3
+RERUNS=3
+
+
+for VARIABLE in 1 ... $RERUNS
 do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
@@ -34,6 +37,7 @@ do
         --name "large_experiment_2/1000m_1rep_20trials/run_$VARIABLE"
     let counter++
 
+    # This experiment is placed at the bottom because it's very slow.
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
@@ -41,21 +45,9 @@ do
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
-        --cpu-limit 750m \
+        --cpu-limit 500m \
         --replicas 1 \
-        --name "large_experiment_2/750m_1rep_20trials/run_$VARIABLE"
-    let counter++
-
-    python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
-        --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,minikube \
-        --steps $STEPS \
-        --trials $TRIALS \
-        --seed $counter \
-        --workload-events $WORKLOAD \
-        --cpu-limit 1250m \
-        --replicas 1 \
-        --name "large_experiment_2/1250m_1rep_20trials/run_$VARIABLE"
+        --name "large_experiment_2/500m_1rep_20trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -68,18 +60,6 @@ do
         --cpu-limit 1500m \
         --replicas 1 \
         --name "large_experiment_2/1500m_1rep_20trials/run_$VARIABLE"
-    let counter++
-
-    python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
-        --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,minikube \
-        --steps $STEPS \
-        --trials $TRIALS \
-        --seed $counter \
-        --workload-events $WORKLOAD \
-        --cpu-limit 1750m \
-        --replicas 1 \
-        --name "large_experiment_2/1750m_1rep_20trials/run_$VARIABLE"
     let counter++
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
@@ -144,18 +124,6 @@ do
 
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,$SMALL_NODE_1,minikube \
-        --steps $STEPS \
-        --trials $TRIALS \
-        --seed $counter \
-        --workload-events $WORKLOAD \
-        --cpu-limit '' \
-        --replicas 2 \
-        --name "large_experiment_2/no_cpu_cap_2rep_20trials/run_$VARIABLE"
-    let counter++
-
-    python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
-        --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,$SMALL_NODE_1,$SMALL_NODE_2,minikube \
         --steps $STEPS \
         --trials $TRIALS \
@@ -164,19 +132,6 @@ do
         --cpu-limit '' \
         --replicas 3 \
         --name "large_experiment_2/no_cpu_cap_3rep_20trials/run_$VARIABLE"
-    let counter++
-
-    # This experiment is placed at the bottom because it's very slow.
-    python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
-        --wait-for-pods $DELAY \
-        --node-selector $BIG_NODE,minikube \
-        --steps $STEPS \
-        --trials $TRIALS \
-        --seed $counter \
-        --workload-events $WORKLOAD \
-        --cpu-limit 500m \
-        --replicas 1 \
-        --name "large_experiment_2/500m_1rep_20trials/run_$VARIABLE"
     let counter++
 
 done

@@ -21,9 +21,11 @@ WORKLOAD=20000
 TRIALS=10
 STEPS=5
 
+RERUNS=3
+
 let counter=1
 
-for VARIABLE in 1 2 3
+for VARIABLE in 1 ... $RERUNS
 do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
