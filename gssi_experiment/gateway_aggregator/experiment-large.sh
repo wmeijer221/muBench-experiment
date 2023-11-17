@@ -16,6 +16,7 @@ WORKLOAD=10000
 # This is 17 because at trials=25 the most accurate model lay at vCPU limit=1500m
 # i.e., if we want to model for 1 vCPU, the load should be reduced by 1/3; i.e. to trials~17.
 TRIALS=17
+STEPS=25
 
 let counter=1
 
@@ -24,7 +25,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -36,7 +37,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -48,7 +49,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -60,7 +61,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -72,7 +73,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -84,7 +85,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -96,7 +97,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -108,7 +109,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -120,7 +121,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,$SMALL_NODE_1,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -132,7 +133,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,$SMALL_NODE_1,$SMALL_NODE_2,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -144,7 +145,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,$SMALL_NODE_1,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -156,7 +157,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,$SMALL_NODE_1,$SMALL_NODE_2,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \
@@ -169,7 +170,7 @@ do
     python3 ./gssi_experiment/gateway_aggregator/service-intensity-experiment.py \
         --wait-for-pods $DELAY \
         --node-selector $BIG_NODE,minikube \
-        --steps 25 \
+        --steps $STEPS \
         --trials $TRIALS \
         --seed $counter \
         --workload-events $WORKLOAD \

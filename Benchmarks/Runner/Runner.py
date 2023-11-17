@@ -208,6 +208,7 @@ def select_endpoint_by_header(
 runner_start_time: datetime = None
 timely_runner_is_done: bool = False
 
+
 def timely_greedy_runner():
     """A greedy runner that runs for some amount of time."""
     global start_time, stats, local_latency_stats, runner_parameters, header_builder, endpoint_picker, runner_start_time
@@ -244,7 +245,10 @@ def timely_greedy_runner():
         runner_current_time = datetime.now()
         runner_passed_time = runner_current_time - runner_start_time
         runner_minutes_spent = runner_passed_time.seconds / 60.0
-        if not timely_runner_is_done and runner_minutes_spent > max_runner_time_in_minutes:
+        if (
+            not timely_runner_is_done
+            and runner_minutes_spent > max_runner_time_in_minutes
+        ):
             timely_runner_is_done = True
             # Kills all of the remaining requests.
             print(f"Passed the maximum time: {max_runner_time_in_minutes} minutes.")
@@ -256,6 +260,7 @@ def timely_greedy_runner():
     try:
         runner_start_time = datetime.now()
         # put every request in the thread pool scheduled at time 0 (in case with initial slow start spread to reduce initial concurrency)
+        # HACK: the timely runner needs a large workload definition to function; this shouldn't be necessary.
         for i in range(workload_events):
             if i < slow_start_end:
                 event_time = i * slow_start_delay
@@ -281,6 +286,7 @@ def timely_greedy_runner():
         s.run()
 
         wait(futures)
+
     except KeyboardInterrupt:
         pool.shutdown(wait=True)
         for future in futures:
@@ -290,6 +296,18 @@ def timely_greedy_runner():
 
     run_duration_sec = time.time() - start_time
     avg_latency = 1.0 * sum(local_latency_stats) / len(local_latency_stats)
+
+    if not timely_runner_is_done:
+        run_duration_min = run_duration_sec / 60.0
+        print(
+            f"WARNING: The timely runner ran out of requests, it only ran for {run_duration_min:.1f}/{max_runner_time_in_minutes} minutes!"
+        )
+        better_workload_events_value = int(
+            workload_events * (max_runner_time_in_minutes / run_duration_min)
+        )
+        print(
+            f"It's recommended to update `workload_events` to at least {better_workload_events_value}."
+        )
 
     print("###############################################")
     print("###########   Stop Forrest Stop!!   ###########")

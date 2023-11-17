@@ -7,7 +7,7 @@
         "workload_rounds": 1,
         "workload_type": "timely_greedy",
         "workload_events": 8000,
-        "max_runner_time_in_minutes": 1,
+        "max_runner_time_in_minutes": 5,
         "thread_pool_size": 16,
         "result_file": "result",
         "ingress_service": "gw",

@@ -5,7 +5,8 @@
          "SimulationWorkspace/workload.json"
       ],
       "workload_rounds": 1,
-      "workload_type": "greedy",
+      "workload_type": "timely_greedy",
+      "max_runner_time_in_minutes": 5,
       "workload_events": 8000,
       "thread_pool_size": 16,
       "result_file": "result",
