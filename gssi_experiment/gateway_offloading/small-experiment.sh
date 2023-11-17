@@ -1,6 +1,9 @@
-LOGS_PATH=./gssi_experiment/gateway_offloading/results/small_experiment_1/logs.out
-mkdir -p ./gssi_experiment/gateway_offloading/results/small_experiment_1
-echo > ./gssi_experiment/gateway_offloading/results/small_experiment_1/logs.out
+#! /bin/bash
+
+BASE_PATH=./gssi_experiment/gateway_offloading/results/small_experiment_2
+LOGS_PATH=$BASE_PATH/logs.out
+mkdir -p $BASE_PATH
+echo > $LOGS_PATH
 
 {
 
