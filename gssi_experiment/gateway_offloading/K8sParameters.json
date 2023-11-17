@@ -12,5 +12,5 @@
    },
    "InternalServiceFilePath": "CustomFunctions",
    "OutputPath": "SimulationWorkspace",
-   "WorkModelPath": "./gssi_experiment/gateway_offloading/TmpWorkModel.json"
+   "WorkModelPath": "./gssi_experiment/gateway_offloading/WorkModel.json.tmp"
 }

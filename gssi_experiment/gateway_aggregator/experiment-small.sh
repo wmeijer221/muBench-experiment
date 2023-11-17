@@ -1,7 +1,4 @@
-# Configurations of big experiment #1: workload=15000, trials=25 (effectively randomly chosen).
-# Configurations of big experiment #2: workload=10000, trials=17 (chosen and reduce time to emphasize vCPU=1, respectively).
-
-BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small
+[BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small
 
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
