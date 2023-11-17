@@ -40,6 +40,11 @@ def visualize_results(
     # Extract data
     s1_intensity, y_min, y_max, y_avg, y_std = zip(*data)
 
+    # Sorts data.
+    combined_arrays = list(zip(s1_intensity, y_min, y_max, y_avg, y_std))
+    sorted_arrays = sorted(combined_arrays, key=lambda x: x[0])
+    s1_intensity, y_min, y_max, y_avg, y_std = zip(*sorted_arrays)
+
     # Calculate y_std_upper and y_std_lower
     y_std_upper = tuple((e + f for e, f in zip(y_avg, y_std)))
     y_std_lower = tuple((e - f for e, f in zip(y_avg, y_std)))
