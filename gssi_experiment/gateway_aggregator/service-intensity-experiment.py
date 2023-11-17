@@ -30,11 +30,14 @@ The main lifecycle of this script is as follows:
 import datetime
 import os
 import random
+import dotenv
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
 import gssi_experiment.util.experiment_visualization_helper as vis_helper
 import gssi_experiment.util.args_helper as args_helper
+
+dotenv.load_dotenv()
 
 start_run_message = """
 
@@ -56,12 +59,6 @@ parser.add_argument(
     dest="aggregator_service_path",
     default=f"{BASE_FOLDER}/gateway_aggregator_service/service.yaml",
 )
-parser.add_argument(
-    "--tmp-aggregator-service-path",
-    action="store",
-    dest="tmp_aggregator_service_path",
-    default=f"{BASE_FOLDER}/tmp_service.yaml",
-)
 args = parser.parse_args()
 args.simulation_steps = max(args.simulation_steps, 1)
 
@@ -69,9 +66,7 @@ random.seed(args.seed)
 print(f"{args.seed=}")
 
 
-def write_tmp_runner_params_for_simulation_step(
-    experiment_idx: int, workload_events: int
-) -> None:
+def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> None:
     """1: prepares the experiment."""
     step_size = 1.0 / args.simulation_steps
     s1_intensity = experiment_idx * step_size
@@ -90,8 +85,8 @@ def write_tmp_runner_params_for_simulation_step(
                 ],
                 [s1_intensity, 1.0 - s1_intensity],
             ),
-            (["RunnerParameters", "workload_events"], workload_events),
             (
+                # TODO: Move this to `exp_helper.run_experiment2()` to reduce code duplication.
                 ["RunnerParameters", "ms_access_gateway"],
                 exp_helper.get_server_endpoint(),
             ),
@@ -101,6 +96,7 @@ def write_tmp_runner_params_for_simulation_step(
 
 
 def write_tmp_deployment_template(template: "str | None"):
+    # TODO: Move this to `exp_helper.run_experiment2()` to prevent duplicate code.
     # Reads template base.
     deployment_path = f"{args.yaml_builder_path}/Templates/DeploymentTemplateBase.yaml"
     with open(deployment_path, "r", encoding="utf-8") as base_file:
@@ -113,8 +109,6 @@ def write_tmp_deployment_template(template: "str | None"):
     with open(deployment_path, "w+", encoding="utf-8") as output_file:
         output_file.write(data)
 
-
-# Runs the experiment
 
 equal_distribution_template = """
   affinity:
@@ -131,6 +125,11 @@ target_node_template = """
 target_nodes = [
     target_node_template.format(name=node) for node in args.node_selector.split(",")
 ]
+# HACK: This shouldn't be handled with an env variable; it should check for "existing" nodes in the cluster and remove those that aren't present.
+if os.getenv("USE_MINIKUBE", "false").lower() == "true" and "minikube" in target_nodes:
+    print("Not running in minikube mode, removing it from the possible targets.")
+    target_nodes.remove("minikube")
+
 target_nodes = "".join(target_nodes)
 equal_distribution_template = equal_distribution_template.format(
     target_nodes=target_nodes
@@ -151,13 +150,24 @@ topology_spread_template = """
 """
 equal_distribution_template += topology_spread_template
 
+node_selector_template = equal_distribution_template
+
+# If it's only one, it will force it to be scheduled on that node.
+# Using spread constraints incidentally doesn't work here.
+if len(target_nodes) == 1:
+    node_selector_template = f"""
+        nodeSelector:
+            kubernetes.io/hostname: {args.node_selector}
+    """
+
 
 start_time = datetime.datetime.now()
 
+tmp_aggregator_service_path = f'{args.aggregator_service_path}.tmp'
 ga_service_yaml_path = (
     exp_helper.write_tmp_service_params_for_node_selector_and_replicas(
         args.aggregator_service_path,
-        args.tmp_aggregator_service_path,
+        tmp_aggregator_service_path,
         args.node_selector,
         args.replicas,
     )
@@ -165,7 +175,7 @@ ga_service_yaml_path = (
 exp_helper.write_tmp_work_model_for_trials(
     args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
 )
-write_tmp_deployment_template(equal_distribution_template)
+write_tmp_deployment_template(node_selector_template)
 k8s_params_file_path = f"{args.k8s_param_path}.tmp"
 exp_helper.write_tmp_k8s_params(
     args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
@@ -177,7 +187,7 @@ all_steps = list(range(args.simulation_steps + 1))
 random.shuffle(all_steps)
 print(f"{all_steps=}")
 for i in all_steps:
-    write_tmp_runner_params_for_simulation_step(i, args.workload_events)
+    write_tmp_runner_params_for_simulation_step(i)
     exp_helper.apply_k8s_yaml_file(ga_service_yaml_path)
     exp_helper.run_experiment2(
         k8s_params_file_path,
@@ -206,8 +216,8 @@ vis_helper.visualize_all_data_and_stitch(
 os.remove(args.tmp_runner_param_file_path)
 os.remove(args.tmp_base_worker_model_file_path)
 os.remove(k8s_params_file_path)
-if os.path.exists(args.tmp_aggregator_service_path):
-    os.remove(args.tmp_aggregator_service_path)
+if os.path.exists(tmp_aggregator_service_path):
+    os.remove(tmp_aggregator_service_path)
 
 end_time = datetime.datetime.now()
 delta_time = end_time - start_time

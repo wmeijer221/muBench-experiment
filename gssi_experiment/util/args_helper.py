@@ -39,7 +39,7 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         "--node-selector",
         action="store",
         dest="node_selector",
-        default=None,
+        default='minikube',
         help="The node on which the pods must be deployed.",
     )
     parser.add_argument(
