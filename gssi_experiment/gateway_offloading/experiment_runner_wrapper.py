@@ -109,29 +109,49 @@ def get_gateway_steps() -> list:
 
 
 def get_simulation_steps() -> list:
+    """Returns simulation steps."""
     return util.shuffled_range(0, args.simulation_steps + 1, 1)
 
 
-# Overwrites work model and k8s params file.
-k8s_params_file_path = f"{args.k8s_param_path}.tmp"
-exp_helper.write_tmp_k8s_params(
-    args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
-)
-
-for gateway_offload, step_idx in itertools.product(
-    get_gateway_steps(), get_simulation_steps()
-):
-    print(f"{gateway_offload=}, {step_idx=}")
-    tmp_runner_param_file_path = write_tmp_runner_params_for_simulation_step(step_idx)
-    tmp_base_worker_model_file_path = write_tmp_work_model_for_offload(gateway_offload)
+def build_output_folder_path(step_idx, gateway_offload) -> str:
+    """factory for the output path."""
     output_folder = (
         exp_helper.get_output_folder(BASE_FOLDER, args.name, step_idx)
         + f"/{gateway_offload}_offload/"
     )
-    exp_helper.run_experiment2(
-        args.k8s_param_path,
-        tmp_runner_param_file_path,
-        args.yaml_builder_path,
-        output_folder,
-        args.wait_for_pods_delay,
+    return output_folder
+
+
+def run_the_experiment():
+    """Does what it says."""
+
+    # Overwrites work model and k8s params file.
+    k8s_params_file_path = f"{args.k8s_param_path}.tmp"
+    exp_helper.write_tmp_k8s_params(
+        args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
     )
+
+    # Iterates through all possible experimental configurations.
+    for gateway_offload, step_idx in itertools.product(
+        get_gateway_steps(), get_simulation_steps()
+    ):
+        print(f"{gateway_offload=}, {step_idx=}")
+
+        # Updates configuration files according to the experimental settings.
+        tmp_runner_param_file_path = write_tmp_runner_params_for_simulation_step(
+            step_idx
+        )
+        write_tmp_work_model_for_offload(gateway_offload)
+
+        # Runs the experiment with the given parameters.
+        exp_helper.run_experiment2(
+            args.k8s_param_path,
+            tmp_runner_param_file_path,
+            args.yaml_builder_path,
+            build_output_folder_path(step_idx, gateway_offload),
+            args.wait_for_pods_delay,
+        )
+
+
+if __name__ == "__main__":
+    run_the_experiment()
