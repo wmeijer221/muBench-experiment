@@ -18,7 +18,7 @@ from gssi_experiment.util.util import (
 dotenv.load_dotenv()
 
 DEFAULT_WINDOW_SIZE_IN_MINUTES = 2
-DEFAULT_STEP_SIZE_IN_SECONDS = 30
+DEFAULT_STEP_SIZE_IN_SECONDS = 120
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
