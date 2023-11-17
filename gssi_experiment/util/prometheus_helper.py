@@ -17,7 +17,8 @@ from gssi_experiment.util.util import (
 
 dotenv.load_dotenv()
 
-DEFAULT_STEP_SIZE_IN_MINUTES = 0.5
+DEFAULT_WINDOW_SIZE_IN_MINUTES = 2
+DEFAULT_STEP_SIZE_IN_SECONDS = 30
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
@@ -26,7 +27,7 @@ def fetch_service_cpu_utilization(
     output_path: str,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    step_size_in_minutes: int = DEFAULT_STEP_SIZE_IN_MINUTES,
+    step_size_in_minutes: int = DEFAULT_WINDOW_SIZE_IN_MINUTES,
 ):
     """Retrieves CPU utilization information from Prometheus and prints it to a CSV file."""
     tmp_output_path = f"{output_path}.tmp"
@@ -41,7 +42,7 @@ def _fetch_service_cpu_utilization_from_prometheus(
     output_path: str,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    step_size_in_minutes: int = DEFAULT_STEP_SIZE_IN_MINUTES,
+    step_size_in_minutes: int = DEFAULT_WINDOW_SIZE_IN_MINUTES,
 ):
     step_size_in_seconds = round(step_size_in_minutes * 60)
     start = start_time.strftime(TIME_FORMAT)
@@ -58,7 +59,7 @@ def _fetch_service_cpu_utilization_from_prometheus(
         "curl",
         "-u",
         f"{prom_user}:{prom_pass}",
-        f"{target_endpoint}/api/v1/query_range?start={start}&end={end}&step={step_size_in_seconds}s&",
+        f"{target_endpoint}/api/v1/query_range?start={start}&end={end}&step={DEFAULT_STEP_SIZE_IN_SECONDS}s&",
         "--data-urlencode",
         'query=sum by (container) (increase(container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*",service="prometheus-kube-prometheus-kubelet"}'
         + f"[{step_size_in_seconds}s])/{step_size_in_seconds})",
