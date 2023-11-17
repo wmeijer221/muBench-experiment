@@ -80,7 +80,7 @@ def do_requests(
         stats.append(stats_output)
         local_latency_stats.append(req_latency_ms)
 
-        if now_ms > last_print_time_ms + 1_000:
+        if now_ms > last_print_time_ms + 5_000:
             print(
                 f"Processed request {processed_requests.value}, latency {req_latency_ms}, pending requests {pending_requests.value}"
             )

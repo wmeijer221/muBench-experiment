@@ -1,10 +1,12 @@
-[BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small
+#! /bin/bash
+
+BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small
 
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
 echo > $BASE_PATH/logs.out
 
-{
+# {
 
 
 DELAY=60

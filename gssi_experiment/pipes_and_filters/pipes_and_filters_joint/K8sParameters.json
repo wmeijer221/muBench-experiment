@@ -6,11 +6,9 @@
       "cluster_domain": "cluster",
       "path": "/api/v1",
       "sleep": 1,
-      "dns-resolver":"kube-dns.kube-system.svc.cluster.local",
-      "cpu-limits": "2000m",
-      "replicas": 1
+      "dns-resolver":"kube-dns.kube-system.svc.cluster.local"
    },
    "InternalServiceFilePath": "CustomFunctions",
    "OutputPath": "SimulationWorkspace",
-   "WorkModelPath": "./gssi_experiment/pipes_and_filters_separated/WorkModel.json"
+   "WorkModelPath": "./gssi_experiment/pipes_and_filters_separated/WorkModel.json.tmp"
 }

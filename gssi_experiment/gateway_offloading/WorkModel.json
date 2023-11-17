@@ -5,8 +5,8 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            20,
-            20
+            400,
+            400
           ],
           "thread_pool_size": 1,
           "trials": 20
@@ -54,8 +54,8 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            20,
-            20
+            400,
+            400
           ],
           "thread_pool_size": 1,
           "trials": 20
@@ -76,8 +76,12 @@
     "external_services": [
       {
         "seq_len": 1,
-        "probabilities": {"s3": 1},
-        "services": ["s3"]
+        "probabilities": {
+          "s3": 1
+        },
+        "services": [
+          "s3"
+        ]
       }
     ],
     "internal_service": {
@@ -85,11 +89,11 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            12,
-            12
+            400,
+            400
           ],
           "thread_pool_size": 1,
-          "trials": 20
+          "trials": 12
         },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"
@@ -109,11 +113,11 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            15,
-            15
+            400,
+            400
           ],
           "thread_pool_size": 1,
-          "trials": 20
+          "trials": 15
         },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"

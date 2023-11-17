@@ -18,6 +18,7 @@ from typing import (
     Dict,
     List,
 )
+import random
 
 import matplotlib.pyplot as plt
 import numpy
@@ -432,3 +433,9 @@ def lies_outside_timewindow(
     """Returns true if the provided timestamp lies outside the provided window."""
     timestamp = datetime.strptime(timestamp, time_format)
     return timestamp < start and timestamp > end
+
+
+def shuffled_range(start=0, end=100, step=1):
+    lst = list(range(start, end, step))
+    random.shuffle(lst)
+    return lst

@@ -3,14 +3,15 @@ Runs service intensity experiment and outputs results.
 It accounts for heterogeneous requests and different amounts of tasks offloaded to the gateway.
 """
 
-import datetime
 import os
 import random
+import itertools
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
-import gssi_experiment.util.experiment_visualization_helper as vis_helper
 import gssi_experiment.util.args_helper as args_helper
+import gssi_experiment.util.util as util
+
 
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 print(f"{BASE_FOLDER=}")
@@ -73,7 +74,7 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
         "internal_service",
         "loader",
         "cpu_stress",
-        "range_complexity",
+        "trials",
     ]
 
     def service_workload_nested_key_generator():
@@ -81,7 +82,7 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
         for service, workload in service_workloads:
             base_nested_key[0] = service
             workload = workload - gw_offload
-            yield base_nested_key, [workload, workload]
+            yield base_nested_key, workload
 
     tmp_base_worker_model_path = f"{args.base_worker_model_file_name}.tmp"
     doc_helper.write_concrete_data_document(
@@ -89,8 +90,8 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
         target_path=tmp_base_worker_model_path,
         overwritten_fields=[
             (
-                ["gw", "internal_service", "loader", "cpu_stress", "range_complexity"],
-                [gw_offload, gw_offload],
+                ["gw", "internal_service", "loader", "cpu_stress", "trials"],
+                gw_offload,
             ),
             *service_workload_nested_key_generator(),
         ],
@@ -99,75 +100,38 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
     return tmp_base_worker_model_path
 
 
-start_time = datetime.datetime.now()
+def get_gateway_steps() -> list:
+    """generates gateway steps."""
+    (gw_min, gw_max, gw_step) = (
+        int(ele) for ele in args.gateway_load_range[1:-1].split(",")
+    )
+    return util.shuffled_range(gw_min, gw_max + 1, gw_step)
+
+
+def get_simulation_steps() -> list:
+    return util.shuffled_range(0, args.simulation_steps + 1, 1)
+
 
 # Overwrites work model and k8s params file.
-exp_helper.write_tmp_work_model_for_trials(
-    args.base_worker_model_file_name, args.tmp_base_worker_model_file_path, args.trials
-)
 k8s_params_file_path = f"{args.k8s_param_path}.tmp"
 exp_helper.write_tmp_k8s_params(
     args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
 )
 
-# Executes experiments.
-(gw_min, gw_max, gw_step) = (
-    int(ele) for ele in args.gateway_load_range[1:-1].split(",")
-)
-gateway_steps = list(range(gw_min, gw_max + 1, gw_step))
-print(f"gateway range / interval: {gateway_steps}")
-for gateway_offload in gateway_steps:
-    experimental_results = []
-
-    # Generates the list of considered simulation steps.
-    all_steps = list(range(args.simulation_steps + 1))
-    random.shuffle(all_steps)
-    print(f"{all_steps=}")
-
-    for step_idx in all_steps:
-        tmp_runner_param_file_path = write_tmp_runner_params_for_simulation_step(
-            step_idx
-        )
-        tmp_base_worker_model_file_path = write_tmp_work_model_for_offload(
-            gateway_offload
-        )
-        exp_helper.write_tmp_work_model_for_trials(
-            tmp_base_worker_model_file_path,
-            tmp_base_worker_model_file_path,
-            args.trials,
-            services=["gw", "s1", "s2", "s3"],
-            request_types=[],
-        )
-        output_folder = exp_helper.get_output_folder(BASE_FOLDER, args.name, step_idx)
-        output_folder = f"{output_folder}/{gateway_offload}_offload/"
-        exp_helper.run_experiment2(
-            args.k8s_param_path,
-            tmp_runner_param_file_path,
-            args.yaml_builder_path,
-            output_folder,
-            args.wait_for_pods_delay,
-        )
-        results = exp_helper.calculate_basic_statistics(step_idx, args.simulation_steps)
-        experimental_results.append(results)
-        print(f"{step_idx=}: {results=}")
-
-        # For debugging.
-        if args.run_one_step:
-            print("Stopping because 'run once' flag is set in args.")
-            break
-
-    # Visualizes results.
-    print(experimental_results)
-    vis_helper.visualize_all_data_and_stitch(
-        experimental_results,
-        output_file_directory=exp_helper.get_output_folder(BASE_FOLDER, args.name),
-        stitched_file_name=f"figure_stitched_gw_{gateway_offload}",
+for gateway_offload, step_idx in itertools.product(
+    get_gateway_steps(), get_simulation_steps()
+):
+    print(f"{gateway_offload=}, {step_idx=}")
+    tmp_runner_param_file_path = write_tmp_runner_params_for_simulation_step(step_idx)
+    tmp_base_worker_model_file_path = write_tmp_work_model_for_offload(gateway_offload)
+    output_folder = (
+        exp_helper.get_output_folder(BASE_FOLDER, args.name, step_idx)
+        + f"/{gateway_offload}_offload/"
     )
-
-# Clean up temp files.
-os.remove(tmp_runner_param_file_path)
-os.remove(tmp_base_worker_model_file_path)
-
-end_time = datetime.datetime.now()
-delta_time = end_time - start_time
-print(f"Finished experiment in {str(delta_time)}.")
+    exp_helper.run_experiment2(
+        args.k8s_param_path,
+        tmp_runner_param_file_path,
+        args.yaml_builder_path,
+        output_folder,
+        args.wait_for_pods_delay,
+    )
