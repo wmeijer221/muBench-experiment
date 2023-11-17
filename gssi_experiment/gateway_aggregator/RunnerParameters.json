@@ -35,10 +35,5 @@
             }
         ]
    },
-   "OutputPath": "SimulationWorkspace/Result",
-   "_AfterWorkloadFunction": {
-      "_comment": "remove _ from the object name to execute the funcions",
-      "file_path": "Function",
-      "function_name": "get_prometheus_stats"
-   }
+   "OutputPath": "SimulationWorkspace/Result"
 }

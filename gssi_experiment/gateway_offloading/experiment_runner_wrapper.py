@@ -147,7 +147,7 @@ def run_the_experiment():
         exp_helper.run_experiment2(
             args.k8s_param_path,
             tmp_runner_param_file_path,
-            args.yaml_builder_path,
+            os.path.dirname(BASE_FOLDER),
             build_output_folder_path(step_idx, gateway_offload),
             args.wait_for_pods_delay,
         )

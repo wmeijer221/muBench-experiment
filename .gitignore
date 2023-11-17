@@ -139,9 +139,9 @@ dmypy.json
 SimulationWorkspace/yamls/*
 SimulationWorkspace/Result/*
 gssi_experiment/*/results/*
-gssi_experiment/*/TmpRunnerParameters.json
-gssi_experiment/*/tmp_*.yaml
-gssi_experiment/*/TmpWorkModel.json
 *.tmp
+
+# Other people's data.
 gssi_experiment/gateway_offloading/multi_N25.csv
 gssi_experiment/gateway_aggregator/pincirolli_results.csv
+gssi_experiment/gateway_aggregator/Templates/DeploymentTemplate.yaml

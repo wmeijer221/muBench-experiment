@@ -24,53 +24,6 @@ from gssi_experiment.util.prometheus_helper import (
 
 dotenv.load_dotenv()
 
-
-def write_tmp_service_params_for_node_selector_and_replicas(
-    aggregator_service_path: str,
-    tmp_aggregator_service_path: str,
-    target_nodes: "str | None" = None,
-    replicas: int = 1,
-) -> str:
-    """Sets the target node field inside the deployment yaml and outputs it to a temp file."""
-    if target_nodes is None:
-        return aggregator_service_path
-    target_nodes = target_nodes.split(",")
-    doc_helper.write_concrete_data_document(
-        aggregator_service_path,
-        tmp_aggregator_service_path,
-        overwritten_fields=[
-            # (
-            #     # NOTE: Assumes the Deployment entity has index 3.
-            #     [3, "spec", "template", "spec", "nodeSelector"],
-            #     {"kubernetes.io/hostname": target_node},
-            # ),
-            (
-                [3, "spec", "template", "spec", "affinity"],
-                {
-                    "nodeAffinity": {
-                        "requiredDuringSchedulingIgnoredDuringExecution": {
-                            "nodeSelectorTerms": [
-                                {
-                                    "matchExpressions": [
-                                        {
-                                            "key": "kubernetes.io/hostname",
-                                            "operator": "In",
-                                            "values": target_nodes,
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                },
-            ),
-            ([3, "spec", "replicas"], replicas),
-        ],
-        editor_type=doc_helper.YamlEditor,
-    )
-    return tmp_aggregator_service_path
-
-
 def write_tmp_work_model_for_trials(
     base_worker_model_file_name: str,
     tmp_base_worker_model_file_path: str,

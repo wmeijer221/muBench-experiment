@@ -1,7 +1,10 @@
 import argparse
+from sys import argv
 
 
 def init_args(base_folder) -> argparse.ArgumentParser:
+    print(f"{argv=}")
+
     parser = argparse.ArgumentParser()
 
     # General
@@ -19,7 +22,6 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         default="",
         help="special name for the experiment to allow diversification.",
     )
-
     # muBench k8s
     parser.add_argument(
         "--k8s-param-path",
@@ -29,17 +31,10 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         help="Path to the file containing the muBench Kuberenetes parameters.",
     )
     parser.add_argument(
-        "--yaml-builder-path",
-        action="store",
-        dest="yaml_builder_path",
-        default=base_folder,
-        help="Specifies the folder in which the yaml template files are stored.",
-    )
-    parser.add_argument(
         "--node-selector",
         action="store",
         dest="node_selector",
-        default='minikube',
+        default="minikube",
         help="The node on which the pods must be deployed.",
     )
     parser.add_argument(
