@@ -1,9 +1,11 @@
 # Configurations of big experiment #1: workload=15000, trials=25 (effectively randomly chosen).
 # Configurations of big experiment #2: workload=10000, trials=17 (chosen and reduce time to emphasize vCPU=1, respectively).
 
-LOGS_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small/logs.out
-mkdir -p ./gssi_experiment/gateway_aggregator/results/experiment_small
-echo > ./gssi_experiment/gateway_aggregator/results/experiment_small/logs.out
+BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small
+
+LOGS_PATH=$BASE_PATH/logs.out
+mkdir -p $BASE_PATH
+echo > $BASE_PATH/logs.out
 
 {
 
@@ -13,6 +15,7 @@ BIG_NODE=node-3
 SMALL_NODE_1=node-1
 SMALL_NODE_2=node-2
 WORKLOAD=20000
+
 # This is 17 because at trials=25 the most accurate model lay at vCPU limit=1500m
 # i.e., if we want to model for 1 vCPU, the load should be reduced by 1/3; i.e. to trials~17.
 TRIALS=10
