@@ -138,7 +138,7 @@ dmypy.json
 # Repository specific ignores.
 SimulationWorkspace/yamls/*
 SimulationWorkspace/Result/*
-gssi_experiment/*/results/*
+gssi_experiment/**/results/*
 *.tmp
 
 # Other people's data.
