@@ -1,5 +1,5 @@
 {
-  "gw": {
+  "s0": {
     "internal_service": {
       "loader": {
         "cpu_stress": {
@@ -43,7 +43,7 @@
     "request_method": "rest",
     "workers": 9,
     "threads": 128,
-    "url": "gw.default.svc.cluster.local",
+    "url": "s0.default.svc.cluster.local",
     "path": "/api/v1",
     "image": "msvcbench/microservice_v3-screen:1.0",
     "namespace": "default"
