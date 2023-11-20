@@ -144,4 +144,4 @@ gssi_experiment/*/results/*
 # Other people's data.
 gssi_experiment/gateway_offloading/multi_N25.csv
 gssi_experiment/gateway_aggregator/pincirolli_results.csv
-gssi_experiment/gateway_aggregator/Templates/DeploymentTemplate.yaml
+gssi_experiment/Templates/DeploymentTemplate.yaml
