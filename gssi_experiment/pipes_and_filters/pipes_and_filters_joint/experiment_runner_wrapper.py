@@ -60,12 +60,13 @@ def run_the_experiment():
 
     # Overwrites affinity in GA service and muBench service yamls.
     ns_helper.load_and_write_node_affinity_template(args, mubench_k8s_template_folder)
-    k8s_params_file_path = f"{args.k8s_param_path}.tmp"
+    k8s_param_path = os.path.dirname(__file__) + "/K8sParameters.json"
+    k8s_params_file_path = f"{k8s_param_path}.tmp"
     passed_cpu_limit = (
         None if args.only_shared_cpu_limits else args.only_shared_cpu_limits
     )
     tmp_doc_helper.write_tmp_k8s_params(
-        args.k8s_param_path, k8s_params_file_path, passed_cpu_limit, args.replicas
+        k8s_param_path, k8s_params_file_path, passed_cpu_limit, args.replicas
     )
 
     write_tmp_work_model()

@@ -94,9 +94,10 @@ def run_the_experiment():
     """Does what it says."""
 
     # Overwrites work model and k8s params file.
-    k8s_params_file_path = f"{args.k8s_param_path}.tmp"
+    k8s_param_path = os.path.dirname(__file__) + "/K8sParameters.json"
+    k8s_params_file_path = f"{k8s_param_path}.tmp"
     tmp_doc_helper.write_tmp_k8s_params(
-        args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
+        k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
     )
 
     mubench_k8s_template_folder = os.path.dirname(BASE_FOLDER)
@@ -116,7 +117,7 @@ def run_the_experiment():
 
         # Runs the experiment with the given parameters.
         exp_params = exp_helper.ExperimentParameters(
-            args.k8s_param_path,
+            k8s_params_file_path,
             tmp_runner_param_file_path,
             mubench_k8s_template_folder,
             build_output_folder_path(step_idx, gateway_offload),
