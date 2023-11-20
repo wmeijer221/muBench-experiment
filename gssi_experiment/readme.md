@@ -35,15 +35,15 @@
 ### Gateway offloading
 
 - [x] Implement header-based forwarding (i.e., a header specifies the endpoint, not the probability) in `muBench` `ServiceCell`.
-- [] Set up gateway offloading pattern without offloading using `muBench`.
-- [] Set up gateway offloading pattern with minor offloading using `muBench`.
-- [] Set up gateway offloading pattern with major offloading using `muBench`.
+- [x] Set up gateway offloading pattern without offloading using `muBench`.
+- [x] Set up gateway offloading pattern with minor offloading using `muBench`.
+- [x] Set up gateway offloading pattern with major offloading using `muBench`.
 
 ### Pipes and filters
 
-- [] Implement header-based forwarding in the `ServiceCell` component. This is necessary for the pipes and filters experiment.
-- [] Set up pipes and filters pattern for the separated experiment using `muBench`.
-- [] Set up pipes and filters pattern for the joint (x1) experiment using `muBench`.
+- [x] Implement header-based forwarding in the `ServiceCell` component. This is necessary for the pipes and filters experiment.
+- [x] Set up pipes and filters pattern for the separated experiment using `muBench`.
+- [x] Set up pipes and filters pattern for the joint (x1) experiment using `muBench`.
 - [] Set up pipes and filters pattern for the joint (x2) experiment using `muBench`.
 
 ## Installation Guide and Experimental Setup
