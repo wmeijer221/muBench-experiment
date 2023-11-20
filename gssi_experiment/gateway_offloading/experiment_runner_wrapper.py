@@ -13,6 +13,7 @@ import gssi_experiment.util.experiment_helper as exp_helper
 import gssi_experiment.util.args_helper as args_helper
 import gssi_experiment.util.util as util
 import gssi_experiment.util.node_selector_helper as ns_helper
+import gssi_experiment.util.tmp_exp_doc_helper as tmp_doc_helper
 
 
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -94,7 +95,7 @@ def run_the_experiment():
 
     # Overwrites work model and k8s params file.
     k8s_params_file_path = f"{args.k8s_param_path}.tmp"
-    exp_helper.write_tmp_k8s_params(
+    tmp_doc_helper.write_tmp_k8s_params(
         args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
     )
 
@@ -107,20 +108,21 @@ def run_the_experiment():
 
         # Updates configuration files according to the experimental settings.
         tmp_runner_param_file_path = (
-            exp_helper.write_tmp_runner_params_for_simulation_step(
+            tmp_doc_helper.write_tmp_runner_params_for_simulation_step(
                 step_idx, args.simulation_steps, args.base_runner_param_file_name
             )
         )
         write_tmp_work_model_for_offload(gateway_offload)
 
         # Runs the experiment with the given parameters.
-        exp_helper.run_experiment(
+        exp_params = exp_helper.ExperimentParameters(
             args.k8s_param_path,
             tmp_runner_param_file_path,
             mubench_k8s_template_folder,
             build_output_folder_path(step_idx, gateway_offload),
             args.wait_for_pods_delay,
         )
+        exp_helper.run_experiment(args, exp_params)
 
 
 if __name__ == "__main__":
