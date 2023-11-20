@@ -22,6 +22,6 @@ python3 ./gssi_experiment/gateway_offloading/experiment_runner_wrapper.py \
     --seed $counter \
     --replicas 1 \
     --cpu-limit 1000m \
-    --gateway-load "[0,10,1]" \
+    --gateway-load "[0,10,2]" \
     --name $EXP_NAME/experiment_$counter
 let counter++
