@@ -8,11 +8,15 @@ from time import sleep
 # appending a path
 sys.path.append("../../")
 
-import K8sYamlBuilder as K8sYamlBuilder
-import K8sYamlDeployer as K8sYamlDeployer
-
 import argparse
 import argcomplete
+
+import dotenv
+
+dotenv.load_dotenv()
+
+import K8sYamlBuilder as K8sYamlBuilder
+import K8sYamlDeployer as K8sYamlDeployer
 
 
 def main(force_no_clean: bool = False):
@@ -100,7 +104,6 @@ def main(force_no_clean: bool = False):
     )
 
     argcomplete.autocomplete(parser)
-
 
     try:
         args = parser.parse_args()

@@ -1,9 +1,6 @@
 import os
 import yaml
 
-import dotenv
-
-dotenv.load_dotenv()
 
 DEFAULT_K8s_YAML_BUILDER_PATH = os.path.dirname(os.path.abspath(__file__))
 
