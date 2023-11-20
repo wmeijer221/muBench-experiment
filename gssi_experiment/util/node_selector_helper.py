@@ -9,6 +9,11 @@ from argparse import Namespace
 from typing import List
 
 
+def add_extra_tabs(text: str, extra_tabs: int) -> str:
+    new_tab = "  " * extra_tabs
+    return text.replace("\n", f"\n{new_tab}")
+
+
 def get_target_nodes(args: Namespace) -> List[str]:
     """Gets target nodes."""
     target_nodes = [node for node in args.node_selector.split(",") if len(node) > 0]
@@ -20,7 +25,7 @@ def get_target_nodes(args: Namespace) -> List[str]:
     ):
         print("Not running in minikube mode, removing it from the possible targets.")
         target_nodes.remove("minikube")
-    print(f'{target_nodes=}')
+    print(f"{target_nodes=}")
     return target_nodes
 
 
@@ -30,27 +35,27 @@ def get_node_affinity_template(args: Namespace) -> str:
     if len(target_nodes) == 0:
         return ""
 
-#     # If it's only one, it will force it to be scheduled on that node.
-#     # Using spread constraints incidentally doesn't work here.
-#     if len(target_nodes) == 1:
-#         node_selector_template = f"""
-#   nodeSelector:
-#     kubernetes.io/hostname: {target_nodes[0]}
-#         """
-#         return node_selector_template
+    # If it's only one, it will force it to be scheduled on that node.
+    # Using spread constraints incidentally doesn't work here.
+    if len(target_nodes) == 1:
+        node_selector_template = f"""
+      nodeSelector:
+        kubernetes.io/hostname: {target_nodes[0]}
+        """
+        return node_selector_template
 
     equal_distribution_template = """
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-          - key: kubernetes.io/hostname
-            operator: In
-            values:{target_nodes}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:{target_nodes}
     """
     target_node_template = """
-            - {name}"""
+                - {name}"""
 
     target_nodes = [target_node_template.format(name=node) for node in target_nodes]
 
@@ -64,13 +69,13 @@ def get_node_affinity_template(args: Namespace) -> str:
     # a deployment, wait for it to be gone, and only then re-apply it; this is a known bug,
     # but k8s isn't prioritizing fixing it).
     topology_spread_template = """
-    topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-      matchLabels:
-          type: {{SERVICE_NAME}}
+        topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+          matchLabels:
+              type: {{SERVICE_NAME}}
     """
     equal_distribution_template += topology_spread_template
 
@@ -106,6 +111,7 @@ def load_and_write_node_affinity_template(
     file and outputs it to the corresonding muBench file.
     """
     node_affinity_setting = get_node_affinity_template(args)
+    add_extra_tabs(node_affinity_setting, 0)
     write_tmp_deployment_template(
         base_folder, deployment_template_file, node_affinity_setting
     )
