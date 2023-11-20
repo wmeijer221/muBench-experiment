@@ -18,11 +18,11 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              12,
-              12
+              400,
+              400
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 12
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -33,11 +33,11 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              8,
-              8
+              400,
+              400
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 8
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -71,11 +71,11 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              15,
-              15
+              400,
+              400
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 15
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -86,11 +86,11 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              9,
-              9
+              400,
+              400
             ],
             "thread_pool_size": 1,
-            "trials": 20
+            "trials": 9
           },
           "mean_bandwidth": 1,
           "function_id": "compute_pi"
@@ -112,11 +112,11 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            11,
-            11
+            400,
+            400
           ],
           "thread_pool_size": 1,
-          "trials": 20
+          "trials": 11
         },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"
@@ -137,11 +137,11 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            10,
-            10
+            400,
+            400
           ],
           "thread_pool_size": 1,
-          "trials": 20
+          "trials": 10
         },
         "mean_bandwidth": 1,
         "function_id": "compute_pi"
