@@ -1,3 +1,8 @@
+#! /bin/bash
+
+# When ran, it updates the Docker isolation rules to not
+# block Container -> Minikube messages.
+
 K8_INTERFACE=br-a730e7875f48
 K8_IPv4=192.168.49.2
 CON_IPv4=172.17.0.3
