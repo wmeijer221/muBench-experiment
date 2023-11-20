@@ -9,5 +9,5 @@
    },
    "InternalServiceFilePath": "CustomFunctions",
    "OutputPath": "SimulationWorkspace",
-   "WorkModelPath": "./gssi_experiment/pipes_and_filters/pipes_and_filters_joint/WorkModel.json"
+   "WorkModelPath": "./gssi_experiment/pipes_and_filters/pipes_and_filters_joint/WorkModel.json.tmp"
 }
