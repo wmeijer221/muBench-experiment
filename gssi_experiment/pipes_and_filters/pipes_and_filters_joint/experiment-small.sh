@@ -26,7 +26,7 @@ python3 ./gssi_experiment/pipes_and_filters/pipes_and_filters_joint/experiment_r
     --seed $counter \
     --cpu-limit 1000m \
     --replicas 1 \
-    --name "$EXP_NAME/1000m_1rep_17trials/run_$VARIABLE"
+    --name $EXP_NAME/experiment_$counter
 let counter++
 
 python3 ./gssi_experiment/pipes_and_filters/pipes_and_filters_joint/experiment_runner_wrapper.py \
@@ -37,6 +37,6 @@ python3 ./gssi_experiment/pipes_and_filters/pipes_and_filters_joint/experiment_r
     --only-shared-cpu-limits \
     --cpu-limit 2000m \
     --replicas 1 \
-    --name "$EXP_NAME/1000m_1rep_17trials/run_$VARIABLE"
+    --name $EXP_NAME/experiment_$counter
 let counter++
 

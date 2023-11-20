@@ -1,6 +1,7 @@
 #! /bin/bash
 
-BASE_PATH=./gssi_experiment/gateway_offloading/results/small_experiment_3
+EXP_NAME=small_experiment_3
+BASE_PATH=./gssi_experiment/gateway_offloading/results/$EXP_NAME
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
 echo > $LOGS_PATH
@@ -22,5 +23,5 @@ python3 ./gssi_experiment/gateway_offloading/experiment_runner_wrapper.py \
     --replicas 1 \
     --cpu-limit 1000m \
     --gateway-load "[0,10,1]" \
-    --name "small_experiment_2/1000m_1rep_17trials/run_1"
+    --name $EXP_NAME/experiment_$counter
 let counter++

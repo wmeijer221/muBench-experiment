@@ -1,6 +1,7 @@
 #! /bin/bash
 
-BASE_PATH=./gssi_experiment/gateway_aggregator/results/experiment_small_3
+EXP_NAME=pinciroli_replication_1
+BASE_PATH=./gssi_experiment/gateway_aggregator/results/$EXP_NAME
 
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
@@ -26,6 +27,6 @@ python3 ./gssi_experiment/gateway_aggregator/experiment_runner_wrapper.py \
     --seed $counter \
     --cpu-limit 1000m \
     --replicas 1 \
-    --name "experiment_small_3/1000m_1rep_17trials/run_$VARIABLE"
+    --name $EXP_NAME/experiment_$counter
 let counter++
 
