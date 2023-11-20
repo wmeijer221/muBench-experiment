@@ -6,6 +6,7 @@ It accounts for heterogeneous requests and different amounts of tasks offloaded 
 import os
 import random
 import itertools
+from typing import Iterator
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
@@ -32,38 +33,6 @@ args.simulation_steps = max(args.simulation_steps, 1)
 
 random.seed(args.seed)
 print(f"{args.seed=}")
-
-
-def write_tmp_runner_params_for_simulation_step(step: int) -> str:
-    """1: prepares the experiment."""
-    step_size = 1.0 / args.simulation_steps
-    rq_type_intensity = step * step_size
-
-    tmp_runner_param_file = f"{args.base_runner_param_file_name}.tmp"
-    doc_helper.write_concrete_data_document(
-        source_path=args.base_runner_param_file_name,
-        target_path=tmp_runner_param_file,
-        overwritten_fields=[
-            # Sets the request type probability.
-            (
-                [
-                    "RunnerParameters",
-                    "HeaderParameters",
-                    0,  # NOTE: This assumes the `RequestTypeHeaderFactory` is the first one in the configuration file.
-                    "parameters",
-                    "probabilities",
-                ],
-                [rq_type_intensity, 1.0 - rq_type_intensity],
-            ),
-            (
-                # TODO: move this to `run_experiment2()` to avoid duplicate code in experiment files.
-                ["RunnerParameters", "ms_access_gateway"],
-                exp_helper.get_server_endpoint(),
-            ),
-        ],
-        editor_type=doc_helper.JsonEditor,
-    )
-    return tmp_runner_param_file
 
 
 def write_tmp_work_model_for_offload(gw_offload: int) -> str:
@@ -101,17 +70,14 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
     return tmp_base_worker_model_path
 
 
-def get_gateway_steps() -> list:
-    """generates gateway steps."""
+def get_experimental_config_iterator() -> Iterator[int, int]:
+    """Returns all possible tested configurations."""
+    sim_steps = util.shuffled_range(0, args.simulation_steps + 1, 1)
     (gw_min, gw_max, gw_step) = (
         int(ele) for ele in args.gateway_load_range[1:-1].split(",")
     )
-    return util.shuffled_range(gw_min, gw_max + 1, gw_step)
-
-
-def get_simulation_steps() -> list:
-    """Returns simulation steps."""
-    return util.shuffled_range(0, args.simulation_steps + 1, 1)
+    gateway_steps = util.shuffled_range(gw_min, gw_max + 1, gw_step)
+    return itertools.product(gateway_steps, sim_steps)
 
 
 def build_output_folder_path(step_idx, gateway_offload) -> str:
@@ -136,19 +102,19 @@ def run_the_experiment():
     ns_helper.load_and_write_node_affinity_template(args, mubench_k8s_template_folder)
 
     # Iterates through all possible experimental configurations.
-    for gateway_offload, step_idx in itertools.product(
-        get_gateway_steps(), get_simulation_steps()
-    ):
+    for gateway_offload, step_idx in get_experimental_config_iterator():
         print(f"{gateway_offload=}, {step_idx=}")
 
         # Updates configuration files according to the experimental settings.
-        tmp_runner_param_file_path = write_tmp_runner_params_for_simulation_step(
-            step_idx
+        tmp_runner_param_file_path = (
+            exp_helper.write_tmp_runner_params_for_simulation_step(
+                step_idx, args.simulation_steps, args.base_runner_param_file_name
+            )
         )
         write_tmp_work_model_for_offload(gateway_offload)
 
         # Runs the experiment with the given parameters.
-        exp_helper.run_experiment2(
+        exp_helper.run_experiment(
             args.k8s_param_path,
             tmp_runner_param_file_path,
             mubench_k8s_template_folder,

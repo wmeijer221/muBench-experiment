@@ -9,9 +9,11 @@ import json
 import sys
 import os
 import shutil
-from typing import Any, List
+from typing import Any, List, Dict, Tuple, Callable
 import importlib
 from pprint import pprint
+from functools import partial
+
 
 import QueryStringBuilder as qsb
 
@@ -191,10 +193,6 @@ def file_runner(workload=None):
         run_after_workload(args)
 
 
-from typing import Dict
-from functools import partial
-
-
 def select_endpoint_simple(event: Dict[str, Any], *args, **kwargs) -> str:
     return event["service"]
 
@@ -202,11 +200,30 @@ def select_endpoint_simple(event: Dict[str, Any], *args, **kwargs) -> str:
 def select_endpoint_by_header(
     event: Dict[str, Any], headers: Dict, header_key: str
 ) -> str:
-    return event["service"]["services"][headers[header_key]]
+    endpoint = event["service"][headers[header_key]]
+    return endpoint
 
 
 runner_start_time: datetime = None
 timely_runner_is_done: bool = False
+
+
+def get_endpoint_picker(runner_params: dict) -> Tuple[Callable, str]:
+    picker = None
+    srv = None
+
+    if "ingress_service" in runner_params.keys():
+        picker = select_endpoint_simple
+        srv = runner_params["ingress_service"]
+    else:
+        picker = select_endpoint_simple
+        srv = "s0"
+
+    if isinstance(srv, dict):
+        picker = partial(select_endpoint_by_header, header_key=srv["header_key"])
+        srv = runner_params["ingress_service"]['services']
+
+    return picker, srv
 
 
 def timely_greedy_runner():
@@ -214,19 +231,6 @@ def timely_greedy_runner():
     global start_time, stats, local_latency_stats, runner_parameters, header_builder, endpoint_picker, runner_start_time
 
     print(f"{runner_parameters=}")
-
-    endpoint_picker = None
-    if "ingress_service" in runner_parameters.keys():
-        endpoint_picker = select_endpoint_simple
-        srv = runner_parameters["ingress_service"]
-    else:
-        endpoint_picker = select_endpoint_simple
-        srv = "s0"
-
-    if isinstance(srv, dict):
-        endpoint_picker = partial(
-            select_endpoint_by_header, header_key=srv["header_key"]
-        )
 
     stats = list()
     print("###############################################")
@@ -236,6 +240,8 @@ def timely_greedy_runner():
     s = sched.scheduler(time.time, time.sleep)
     pool = ThreadPoolExecutor(threads)
     futures: list[Future] = list()
+    endpoint_picker, srv = get_endpoint_picker(runner_parameters)
+    print(f"{srv=}, {endpoint_picker=}")
     event = {"service": srv, "time": 0}
     slow_start_end = 32  # number requests with initial delays
     slow_start_delay = 0.1

@@ -24,6 +24,7 @@ from gssi_experiment.util.prometheus_helper import (
 
 dotenv.load_dotenv()
 
+
 def write_tmp_work_model_for_trials(
     base_worker_model_file_name: str,
     tmp_base_worker_model_file_path: str,
@@ -88,7 +89,7 @@ def write_tmp_k8s_params(
     )
 
 
-def run_experiment2(
+def run_experiment(
     k8s_parameters_path: str,
     runner_parameter_path: str,
     yaml_builder_path: str,
@@ -283,3 +284,35 @@ def get_server_endpoint() -> str:
         raise ValueError(f'Environment variable "{key}" is not set.')
     print(f'Retrieved server endpoint: "{server_endpoint}".')
     return server_endpoint
+
+
+def write_tmp_runner_params_for_simulation_step(
+    experiment_idx: int, simulation_steps: int, base_runner_param_file_name: str
+) -> str:
+    """Generates runner params to reflect the s1 intensity setting."""
+    step_size = 1.0 / simulation_steps
+    intensity = experiment_idx * step_size
+
+    tmp_runner_param_file_path = f"{base_runner_param_file_name}.tmp"
+    doc_helper.write_concrete_data_document(
+        source_path=base_runner_param_file_name,
+        target_path=tmp_runner_param_file_path,
+        overwritten_fields=[
+            (
+                [
+                    "RunnerParameters",
+                    "HeaderParameters",
+                    0,  # NOTE: This assumes the `RequestTypeHeaderFactory` is the first one in the configuration file.
+                    "parameters",
+                    "probabilities",
+                ],
+                [intensity, 1.0 - intensity],
+            ),
+            (
+                ["RunnerParameters", "ms_access_gateway"],
+                get_server_endpoint(),
+            ),
+        ],
+        editor_type=doc_helper.JsonEditor,
+    )
+    return tmp_runner_param_file_path

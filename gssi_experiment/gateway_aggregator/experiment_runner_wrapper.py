@@ -56,37 +56,6 @@ random.seed(args.seed)
 print(f"{args.seed=}")
 
 
-def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> str:
-    """Generates runner params to reflect the s1 intensity setting."""
-    step_size = 1.0 / args.simulation_steps
-    s1_intensity = experiment_idx * step_size
-
-    tmp_runner_param_file_path = f"{args.base_runner_param_file_name}.tmp"
-    doc_helper.write_concrete_data_document(
-        source_path=args.base_runner_param_file_name,
-        target_path=tmp_runner_param_file_path,
-        overwritten_fields=[
-            (
-                [
-                    "RunnerParameters",
-                    "HeaderParameters",
-                    0,  # NOTE: This assumes the `RequestTypeHeaderFactory` is the first one in the configuration file.
-                    "parameters",
-                    "probabilities",
-                ],
-                [s1_intensity, 1.0 - s1_intensity],
-            ),
-            (
-                # TODO: Move this to `exp_helper.run_experiment2()` to reduce code duplication.
-                ["RunnerParameters", "ms_access_gateway"],
-                exp_helper.get_server_endpoint(),
-            ),
-        ],
-        editor_type=doc_helper.JsonEditor,
-    )
-    return tmp_runner_param_file_path
-
-
 def write_tmp_ga_service_for_node_selector_and_replicas_one_target(
     target_node: str,
 ) -> str:
@@ -187,11 +156,13 @@ def run_the_experiment():
 
     # Executes experiments for every considered s1 intensity value.
     for step_idx in util.shuffled_range(0, args.simulation_steps + 1, 1):
-        tmp_runner_param_file_path = write_tmp_runner_params_for_simulation_step(
-            step_idx
+        tmp_runner_param_file_path = (
+            exp_helper.write_tmp_runner_params_for_simulation_step(
+                step_idx, args.simulation_steps, args.base_runner_param_file_name
+            )
         )
         exp_helper.apply_k8s_yaml_file(tmp_ga_service_yaml_path)
-        exp_helper.run_experiment2(
+        exp_helper.run_experiment(
             k8s_params_file_path,
             tmp_runner_param_file_path,
             mubench_k8s_template_folder,
