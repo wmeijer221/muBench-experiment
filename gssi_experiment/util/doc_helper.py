@@ -21,7 +21,7 @@ class JsonEditor(DocumentEditor):
         return json.loads(source_file.read())
 
     def write_file(self, document: Collection, output_file: TextIOWrapper):
-        output_file.write(json.dumps(document, indent=4))
+        output_file.write(json.dumps(document, indent=2))
 
 
 class YamlEditor(DocumentEditor):

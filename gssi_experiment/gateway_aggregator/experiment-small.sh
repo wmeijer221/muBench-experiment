@@ -15,6 +15,7 @@ SMALL_NODE_2=node-2
 STEPS=5
 
 RERUNS=3
+VARIABLE=1
 
 let counter=1
 

@@ -1,6 +1,6 @@
 {
   "gateway-aggregator": {
-    "__comment": "This service is not created by the K8s builder, instead a custom service is deployed.",
+    "__comment": "This service is not created by the K8s builder, instead a custom service is deployed. TODO: add parameter that runs the command to load / unload this automatically; i.e., integrate the custom service into the pipeline.",
     "is_generated": false,
     "url": "gateway-aggregator.default.svc.cluster.local",
     "path": "/api/v1"

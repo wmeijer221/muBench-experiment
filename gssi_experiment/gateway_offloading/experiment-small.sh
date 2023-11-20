@@ -16,11 +16,11 @@ let counter=1000
 
 python3 ./gssi_experiment/gateway_offloading/experiment_runner_wrapper.py \
     --wait-for-pods $DELAY \
-    --seed $counter \
-    --steps $STEPS \
-    --gateway-load [0,10,1] \
     --node-selector $BIG_NODE,minikube \
+    --steps $STEPS \
+    --seed $counter \
     --replicas 1 \
     --cpu-limit 1000m \
+    --gateway-load "[0,10,1]" \
     --name "small_experiment_2/1000m_1rep_17trials/run_1"
 let counter++
