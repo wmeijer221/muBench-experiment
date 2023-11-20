@@ -4,7 +4,7 @@ Runs service intensity experiment and outputs results.
 
 import os
 import random
-from typing import Iterator
+from typing import Iterator, Tuple, List
 
 import dotenv
 
@@ -35,7 +35,7 @@ def write_tmp_work_model() -> str:
     """Writes temporary work model to only increase the cpu limit of the shared services."""
     shared_services = ["s1", "s2"]
 
-    def nested_key_generator() -> Iterator[str]:
+    def nested_key_generator() -> Iterator[Tuple[List[str], str]]:
         base_key = ["__service", "cpu-limits"]
         for service in shared_services:
             base_key[0] = service
@@ -63,7 +63,7 @@ def run_the_experiment():
     k8s_param_path = os.path.dirname(__file__) + "/K8sParameters.json"
     k8s_params_file_path = f"{k8s_param_path}.tmp"
     passed_cpu_limit = (
-        None if args.only_shared_cpu_limits else args.only_shared_cpu_limits
+        None if args.only_shared_cpu_limits else args.cpu_limit
     )
     tmp_doc_helper.write_tmp_k8s_params(
         k8s_param_path, k8s_params_file_path, passed_cpu_limit, args.replicas
