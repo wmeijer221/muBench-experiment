@@ -2,141 +2,57 @@
 Implements some reusable functionality for experimentation.
 """
 
-import csv
 import datetime
 import os
 from subprocess import Popen
-from typing import Dict, Tuple, Generator, List
 from time import sleep
-import itertools
 import json
 from os import getenv
+from dataclasses import dataclass
+from argparse import Namespace
 
 import dotenv
-import numpy as np
 
-import gssi_experiment.util.doc_helper as doc_helper
 from gssi_experiment.util.prometheus_helper import (
     fetch_service_cpu_utilization,
     TIME_FORMAT,
 )
-
+import gssi_experiment.util.mubench_helper as mubench_helper
 
 dotenv.load_dotenv()
 
 
-def write_tmp_work_model_for_trials(
-    base_worker_model_file_name: str,
-    tmp_base_worker_model_file_path: str,
-    trials: int,
-    # TODO: Remove these two defaults
-    services: List[str] = ["s1", "s2", "s3"],
-    request_types: List[str] = ["s1_intensive", "s3_intensive"],
-) -> str:
-    """Overwrites the trials field in the WorkModel json file and outputs it to a tmp file."""
-    # TODO: get rid of the tmp_base_worker_model_file_path parameter / command-line argument as it's bloat; consider replacing it with `tempfile`.
-    base_path = [
-        "__service",  # is overwritten
-        "internal_service",
-        "__request_type",  # is overwritten
-        "loader",
-        "cpu_stress",
-        "trials",
-    ]
-
-    def nested_key_generator() -> Generator:
-        for service, request_type in itertools.product(services, request_types):
-            base_path[0] = service
-            base_path[2] = request_type
-            yield (base_path, trials)
-
-    base_case = [
-        "__service",  # is overwritten
-        "internal_service",
-        "loader",
-        "cpu_stress",
-        "trials",
-    ]
-
-    def nested_base_case_generator() -> Generator:
-        for service in services:
-            base_case[0] = service
-            yield (base_case, trials)
-
-    overwritten_fields = itertools.chain(
-        nested_key_generator(), nested_base_case_generator()
-    )
-
-    doc_helper.write_concrete_data_document(
-        base_worker_model_file_name,
-        tmp_base_worker_model_file_path,
-        overwritten_fields=overwritten_fields,
-        editor_type=doc_helper.JsonEditor,
-    )
+@dataclass(frozen=True)
+class ExperimentParameters:
+    k8s_parameters_path: str
+    runner_parameter_path: str
+    yaml_builder_path: str
+    output_folder: str
+    pod_initialize_delay: int = 10
+    prometheus_fetch_delay: int = 30
 
 
-def write_tmp_k8s_params(
-    input_path: str, output_path: str, cpu_limits: str, replicas: int
-):
-    overwritten_fields = []
-    if replicas > 0:
-        replica_field = (["K8sParameters", "replicas"], replicas)
-        overwritten_fields.append(replica_field)
-    if not cpu_limits is None:
-        cpu_limit_field = (["K8sParameters", "cpu-limits"], cpu_limits)
-        overwritten_fields.append(cpu_limit_field)
-    doc_helper.write_concrete_data_document(
-        input_path,
-        output_path,
-        editor_type=doc_helper.JsonEditor,
-        overwritten_fields=overwritten_fields,
-    )
-
-
-def run_experiment(
-    k8s_parameters_path: str,
-    runner_parameter_path: str,
-    yaml_builder_path: str,
-    output_folder: str,
-    pod_initialize_delay: int = 10,
-    prometheus_fetch_delay: int = 30,
-):
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+def run_experiment(args: Namespace, exp_params: ExperimentParameters):
+    if not os.path.exists(exp_params.output_folder):
+        os.makedirs(exp_params.output_folder)
 
     # Runs experiment
     start_time = datetime.datetime.now()
     _run_experiment(
-        k8s_parameters_path,
-        runner_parameter_path,
-        yaml_builder_path,
-        pod_initialize_delay,
+        exp_params.k8s_parameters_path,
+        exp_params.runner_parameter_path,
+        exp_params.yaml_builder_path,
+        exp_params.pod_initialize_delay,
     )
     end_time = datetime.datetime.now()
+
     sleep(1)
-    mubench_results_path = "./SimulationWorkspace/Result/result.txt"
-    mubench_output_path = f"{output_folder}/mubench_results.csv"
-    _rewrite_mubench_results(mubench_results_path, mubench_output_path)
+    _write_metadata(exp_params.output_folder, start_time, end_time, exp_params, args)
+    _write_mubench_data(exp_params.output_folder)
 
-    # Fetches CPU utilization.
-    cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
-    fetch_start = start_time - datetime.timedelta(minutes=2)
-    fetch_end = end_time + datetime.timedelta(minutes=2)
-    print(f"Waiting {prometheus_fetch_delay} seconds before fetching Prometheus data.")
-    sleep(prometheus_fetch_delay)
-    fetch_service_cpu_utilization(cpu_utilization_output_path, fetch_start, fetch_end)
-
-    # Write meta data file
-    meta_data = {
-        "start_time": start_time.strftime(TIME_FORMAT),
-        "end_time": end_time.strftime(TIME_FORMAT),
-        "muBench_results_path": mubench_output_path,
-        "Prometheus_cpu_utilization_path": cpu_utilization_output_path,
-    }
-    with open(
-        f"{output_folder}/metadata.json", "w+", encoding="utf-8"
-    ) as metadata_output_file:
-        metadata_output_file.write(json.dumps(meta_data, indent=4))
+    print(f"Waiting {exp_params.prometheus_fetch_delay}s to fetching Prometheus data.")
+    sleep(exp_params.prometheus_fetch_delay)
+    _write_prometheus_data(exp_params.output_folder, start_time, end_time)
 
 
 def _run_experiment(
@@ -177,94 +93,42 @@ def _run_experiment(
         raise
 
 
-def _rewrite_mubench_results(input_path: str, output_path: str):
-    with open(output_path, "w+", encoding="utf-8") as output_file:
-        csv_writer = csv.writer(output_file)
-        headers = [
-            "timestamp",
-            "latency_ms",
-            "status_code",
-            "processed_requests",
-            "pending_requests",
-        ]
-        with open(input_path, "r", encoding="utf-8") as input_file:
-            for i, line in enumerate(input_file):
-                chunks = line.split()
-                msg_headers = [ele[1:-1].split(":") for ele in chunks[5:]]
-                if i == 0:
-                    header_keys = [ele[0][2:] for ele in msg_headers]
-                    headers = [*headers, *header_keys]
-                    csv_writer.writerow(headers)
-                msg_headers = [":".join(ele[1:]) for ele in msg_headers]
-                data_point = [*chunks[:5], *msg_headers]
-                csv_writer.writerow(data_point)
+def _write_mubench_data(output_folder):
+    mubench_results_path = "./SimulationWorkspace/Result/result.txt"
+    mubench_output_path = f"{output_folder}/mubench_results.csv"
+    mubench_helper.rewrite_mubench_results(mubench_results_path, mubench_output_path)
 
 
-def apply_k8s_yaml_file(file_path: str, sleep_between_reapply: int = 30):
-    """Applies a yaml field using kubectl"""
-    # Deletes old deployment
-    args = ["kubectl", "delete", "-f", file_path]
-    proc = Popen(args)
-    statuscode = proc.wait()
-    if statuscode != 0:
-        print(f'Could not delete "{file_path}".')
-    print(f'Sleeping {sleep_between_reapply} seconds before reapplying "{file_path}".')
-    sleep(sleep_between_reapply)
-    # Applies the new one.
-    args = ["kubectl", "create", "-f", file_path]
-    proc = Popen(args)
-    statuscode = proc.wait()
-    if statuscode != 0:
-        raise ValueError(f'Could not apply "{file_path}".')
+def _write_prometheus_data(
+    output_folder,
+    start_time: datetime.datetime,
+    end_time: datetime.datetime,
+):
+    # Fetches CPU utilization.
+    cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
+    fetch_start = start_time - datetime.timedelta(minutes=2)
+    fetch_end = end_time + datetime.timedelta(minutes=2)
+    fetch_service_cpu_utilization(cpu_utilization_output_path, fetch_start, fetch_end)
 
 
-def restart_deployment(deployment_name: str):
-    """Rolls out a restart for th egiven deployment."""
-    args = ["kubectl", "rollout", "restart", "deployment", deployment_name]
-    Popen(args).wait()
-
-
-def calculate_basic_statistics(
-    experiment_idx: int,
-    simulation_steps: int,
-    result_file_path: str = "./SimulationWorkspace/Result/result.txt",
-) -> Dict[str, Tuple]:
-    """
-    Calculates the min, max, mean, std of each variable.
-    Generates separate results for messages with different
-    ``x-requesttype`` header fields.
-    """
-
-    step_size = 1.0 / simulation_steps
-    s1_intensity = experiment_idx * step_size
-
-    all_data_key = "all"
-
-    with open(result_file_path, "r", encoding="utf-8") as results_file:
-        delays_per_group = {all_data_key: []}
-        delays = []
-        for entry in results_file:
-            elements = entry.split()
-            delay = int(elements[1])
-            delays_per_group[all_data_key].append(delay)
-            # splits by message type
-            message_type = list(
-                [ele for ele in elements if ele.startswith('"x-requesttype:')]
-            )[0]
-            message_type = message_type[1:-1].split(":")[1]
-            if message_type not in delays_per_group:
-                delays_per_group[message_type] = []
-            delays_per_group[message_type].append(delay)
-        # Calculates basic statistics.
-        results = {}
-        for key, delays in delays_per_group.items():
-            mn = np.min(delays)
-            mx = np.max(delays)
-            avg = np.average(delays)
-            std = np.std(delays)
-            results[key] = (s1_intensity, mn, mx, avg, std)
-            print(f"{s1_intensity=}, {key=}: {mn=}, {mx=}, {avg=}, {std=}")
-        return results
+def _write_metadata(
+    output_folder,
+    start_time: datetime.datetime,
+    end_time: datetime.datetime,
+    exp_params: ExperimentParameters,
+    args: Namespace,
+):
+    # Write meta data file
+    meta_data = {
+        "start_time": start_time.strftime(TIME_FORMAT),
+        "end_time": end_time.strftime(TIME_FORMAT),
+        "experiment_parameters": exp_params.__dict__,
+        "cmd_arguments": args.__dict__,
+    }
+    with open(
+        f"{output_folder}/metadata.json", "w+", encoding="utf-8"
+    ) as metadata_output_file:
+        metadata_output_file.write(json.dumps(meta_data, indent=4))
 
 
 def get_output_folder(
@@ -282,41 +146,10 @@ def get_output_folder(
 
 
 def get_server_endpoint() -> str:
+    """Retrieves server endpoint from the environment."""
     key = "SERVER_API_ENDPOINT"
     server_endpoint = getenv(key)
     if server_endpoint is None:
         raise ValueError(f'Environment variable "{key}" is not set.')
     print(f'Retrieved server endpoint: "{server_endpoint}".')
     return server_endpoint
-
-
-def write_tmp_runner_params_for_simulation_step(
-    experiment_idx: int, simulation_steps: int, base_runner_param_file_name: str
-) -> str:
-    """Generates runner params to reflect the s1 intensity setting."""
-    step_size = 1.0 / simulation_steps
-    intensity = experiment_idx * step_size
-
-    tmp_runner_param_file_path = f"{base_runner_param_file_name}.tmp"
-    doc_helper.write_concrete_data_document(
-        source_path=base_runner_param_file_name,
-        target_path=tmp_runner_param_file_path,
-        overwritten_fields=[
-            (
-                [
-                    "RunnerParameters",
-                    "HeaderParameters",
-                    0,  # NOTE: This assumes the `RequestTypeHeaderFactory` is the first one in the configuration file.
-                    "parameters",
-                    "probabilities",
-                ],
-                [intensity, 1.0 - intensity],
-            ),
-            (
-                ["RunnerParameters", "ms_access_gateway"],
-                get_server_endpoint(),
-            ),
-        ],
-        editor_type=doc_helper.JsonEditor,
-    )
-    return tmp_runner_param_file_path
