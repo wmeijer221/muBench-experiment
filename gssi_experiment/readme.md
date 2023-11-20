@@ -44,7 +44,7 @@
 - [x] Implement header-based forwarding in the `ServiceCell` component. This is necessary for the pipes and filters experiment.
 - [x] Set up pipes and filters pattern for the separated experiment using `muBench`.
 - [x] Set up pipes and filters pattern for the joint (x1) experiment using `muBench`.
-- [] Set up pipes and filters pattern for the joint (x2) experiment using `muBench`.
+- [x] Set up pipes and filters pattern for the joint (x2) experiment using `muBench`.
 
 ## Installation Guide and Experimental Setup
 
