@@ -20,6 +20,7 @@ def get_target_nodes(args: Namespace) -> List[str]:
     ):
         print("Not running in minikube mode, removing it from the possible targets.")
         target_nodes.remove("minikube")
+    print(f'{target_nodes=}')
     return target_nodes
 
 
