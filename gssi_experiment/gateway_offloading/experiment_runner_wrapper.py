@@ -11,6 +11,7 @@ import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
 import gssi_experiment.util.args_helper as args_helper
 import gssi_experiment.util.util as util
+import gssi_experiment.util.node_selector_helper as ns_helper
 
 
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -131,6 +132,9 @@ def run_the_experiment():
         args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
     )
 
+    mubench_k8s_template_folder = os.path.dirname(BASE_FOLDER)
+    ns_helper.load_and_write_node_affinity_template(args, mubench_k8s_template_folder)
+
     # Iterates through all possible experimental configurations.
     for gateway_offload, step_idx in itertools.product(
         get_gateway_steps(), get_simulation_steps()
@@ -147,7 +151,7 @@ def run_the_experiment():
         exp_helper.run_experiment2(
             args.k8s_param_path,
             tmp_runner_param_file_path,
-            os.path.dirname(BASE_FOLDER),
+            mubench_k8s_template_folder,
             build_output_folder_path(step_idx, gateway_offload),
             args.wait_for_pods_delay,
         )

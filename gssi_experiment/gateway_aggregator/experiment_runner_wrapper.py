@@ -30,12 +30,12 @@ The main lifecycle of this script is as follows:
 import os
 import random
 import dotenv
-from typing import List
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
 import gssi_experiment.util.args_helper as args_helper
 import gssi_experiment.util.util as util
+import gssi_experiment.util.node_selector_helper as ns_helper
 
 dotenv.load_dotenv()
 
@@ -54,20 +54,6 @@ args.simulation_steps = max(args.simulation_steps, 1)
 
 random.seed(args.seed)
 print(f"{args.seed=}")
-
-
-def get_target_nodes() -> List[str]:
-    """Gets target nodes."""
-    target_nodes = args.node_selector.split(",")
-
-    # HACK: This shouldn't be handled with an env variable; it should check for "existing" nodes in the cluster and remove those that aren't present.
-    if (
-        os.getenv("USE_MINIKUBE", "false").lower() == "false"
-        and "minikube" in target_nodes
-    ):
-        print("Not running in minikube mode, removing it from the possible targets.")
-        target_nodes.remove("minikube")
-    return target_nodes
 
 
 def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> str:
@@ -99,73 +85,6 @@ def write_tmp_runner_params_for_simulation_step(experiment_idx: int) -> str:
         editor_type=doc_helper.JsonEditor,
     )
     return tmp_runner_param_file_path
-
-
-def get_node_affinity_template() -> str:
-    """Generates node affinity template based on command line arguments."""
-    equal_distribution_template = """
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-          - key: kubernetes.io/hostname
-            operator: In
-            values:{target_nodes}
-    """
-    target_node_template = """
-            - {name}"""
-
-    target_nodes = [
-        target_node_template.format(name=node) for node in get_target_nodes()
-    ]
-
-    target_nodes = "".join(target_nodes)
-    equal_distribution_template = equal_distribution_template.format(
-        target_nodes=target_nodes
-    )
-    # Adding this 'forces' pods to be spread across different nodes
-    # (this is a bugged k8s feature though as it works during the initial deployment
-    # but not during re-deployments; i.e., if you want to ensure this, you have to delete
-    # a deployment, wait for it to be gone, and only then re-apply it; this is a known bug,
-    # but k8s isn't prioritizing fixing it).
-    topology_spread_template = """
-    topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-      matchLabels:
-          type: {{SERVICE_NAME}}
-    """
-    equal_distribution_template += topology_spread_template
-
-    node_selector_template = equal_distribution_template
-
-    # If it's only one, it will force it to be scheduled on that node.
-    # Using spread constraints incidentally doesn't work here.
-    if len(target_nodes) == 1:
-        node_selector_template = f"""
-            nodeSelector:
-                kubernetes.io/hostname: {args.node_selector}
-        """
-
-    return node_selector_template
-
-
-def write_tmp_deployment_template(template: "str | None"):
-    """Writes a temporary k8s deployment configuration that specifies the node affinity settings."""
-    # Reads template base.
-    deployment_path = f"{BASE_FOLDER}/Templates/muBench-DeploymentTemplate-GA.yaml"
-    with open(deployment_path, "r", encoding="utf-8") as base_file:
-        data = base_file.read()
-
-    setting = template if template else ""
-    data = data.replace("{{NODE_AFFINITY}}", setting)
-    # writes data
-    deployment_path = f"{BASE_FOLDER}/Templates/DeploymentTemplate.yaml"
-    with open(deployment_path, "w+", encoding="utf-8") as output_file:
-        output_file.write(data)
 
 
 def write_tmp_ga_service_for_node_selector_and_replicas_one_target(
@@ -242,7 +161,7 @@ def write_tmp_ga_service_for_node_selector_and_replicas_multiple_targets(
 def write_tmp_ga_service_for_node_selector_and_replicas() -> str:
     """Sets the target node field inside the deployment yaml and outputs it to a temp file."""
 
-    target_nodes = get_target_nodes()
+    target_nodes = ns_helper.get_target_nodes(args)
     if len(target_nodes) == 0:
         return write_tmp_ga_service_for_node_selector_and_replicas_one_target(
             target_nodes[0]
@@ -256,10 +175,11 @@ def write_tmp_ga_service_for_node_selector_and_replicas() -> str:
 def run_the_experiment():
     """Does what it says."""
 
+    mubench_k8s_template_folder = os.path.dirname(BASE_FOLDER)
+
     # Overwrites affinity in GA service and muBench service yamls.
     tmp_ga_service_yaml_path = write_tmp_ga_service_for_node_selector_and_replicas()
-    node_affinity_setting = get_node_affinity_template()
-    write_tmp_deployment_template(node_affinity_setting)
+    ns_helper.load_and_write_node_affinity_template(args, mubench_k8s_template_folder)
     k8s_params_file_path = f"{args.k8s_param_path}.tmp"
     exp_helper.write_tmp_k8s_params(
         args.k8s_param_path, k8s_params_file_path, args.cpu_limit, args.replicas
@@ -274,7 +194,7 @@ def run_the_experiment():
         exp_helper.run_experiment2(
             k8s_params_file_path,
             tmp_runner_param_file_path,
-            BASE_FOLDER,
+            mubench_k8s_template_folder,
             exp_helper.get_output_folder(BASE_FOLDER, args.name, step_idx),
             args.wait_for_pods_delay,
         )
