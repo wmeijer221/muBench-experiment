@@ -6,7 +6,7 @@ It accounts for heterogeneous requests and different amounts of tasks offloaded 
 import os
 import random
 import itertools
-from typing import Iterator
+from typing import Iterator, Tuple
 
 import gssi_experiment.util.doc_helper as doc_helper
 import gssi_experiment.util.experiment_helper as exp_helper
@@ -71,7 +71,7 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
     return tmp_base_worker_model_path
 
 
-def get_experimental_config_iterator() -> Iterator[int, int]:
+def get_experimental_config_iterator() -> Iterator[Tuple[int, int]]:
     """Returns all possible tested configurations."""
     sim_steps = util.shuffled_range(0, args.simulation_steps + 1, 1)
     (gw_min, gw_max, gw_step) = (
