@@ -1,8 +1,9 @@
-import json
 import os
 import yaml
-from pprint import pprint
 
+import dotenv
+
+dotenv.load_dotenv()
 
 DEFAULT_K8s_YAML_BUILDER_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -49,7 +50,10 @@ def customization_work_model(workmodel, k8s_parameters):
     for service in workmodel:
         # Skips entries that are not generated services.
         is_generated_key = "is_generated"
-        if is_generated_key in workmodel[service] and not workmodel[service][is_generated_key]:
+        if (
+            is_generated_key in workmodel[service]
+            and not workmodel[service][is_generated_key]
+        ):
             print(f"###############\nSkipping service {service}.\n###############")
             continue
 
@@ -78,7 +82,9 @@ def customization_work_model(workmodel, k8s_parameters):
             )
         if "memory-limits" in k8s_parameters.keys():
             # override memory-limits value of workmodel.json
-            workmodel[service].update({"memory-limits": k8s_parameters["memory-limits"]})
+            workmodel[service].update(
+                {"memory-limits": k8s_parameters["memory-limits"]}
+            )
     print("Work Model Updated!")
 
 
@@ -87,7 +93,7 @@ def create_deployment_yaml_files(
 ):
     if k8s_yaml_builder_path is None:
         k8s_yaml_builder_path = DEFAULT_K8s_YAML_BUILDER_PATH
-        
+
     print(f"Using YAML builder path '{k8s_yaml_builder_path}'.")
 
     namespace = k8s_parameters["namespace"]
@@ -95,7 +101,10 @@ def create_deployment_yaml_files(
     for service in workmodel:
         # Skips entries that are not generated services.
         is_generated_key = "is_generated"
-        if is_generated_key in workmodel[service] and not workmodel[service][is_generated_key]:
+        if (
+            is_generated_key in workmodel[service]
+            and not workmodel[service][is_generated_key]
+        ):
             print(f"###############\nSkipping service {service}.\n###############")
             continue
 
@@ -171,7 +180,11 @@ def create_deployment_yaml_files(
                 ):
                     s = s + "\n            requests:"
                     if "cpu-requests" in workmodel[service].keys():
-                        s = s + "\n              cpu: " + workmodel[service]["cpu-requests"]
+                        s = (
+                            s
+                            + "\n              cpu: "
+                            + workmodel[service]["cpu-requests"]
+                        )
                         if "m" in workmodel[service]["cpu-requests"]:
                             rank_string = str(
                                 int(workmodel[service]["cpu-requests"].replace("m", ""))
@@ -192,7 +205,11 @@ def create_deployment_yaml_files(
                 ):
                     s = s + "\n            limits:"
                     if "cpu-limits" in workmodel[service].keys():
-                        s = s + "\n              cpu: " + workmodel[service]["cpu-limits"]
+                        s = (
+                            s
+                            + "\n              cpu: "
+                            + workmodel[service]["cpu-limits"]
+                        )
                     if "memory-limits" in workmodel[service].keys():
                         s = (
                             s
@@ -218,9 +235,9 @@ def create_deployment_yaml_files(
         f = file.read()
         f = f.replace("{{NAMESPACE}}", namespace)
         f = f.replace("{{PATH}}", k8s_parameters["path"])
-        # TODO: This field is currently not used as the IP address is static.
-        # Implement a manner to automatically resolve this to the IP address of the DNS service.
-        f = f.replace("{{RESOLVER}}", k8s_parameters["dns-resolver"])
+        dns_resolver = os.getenv("K8S_DNS_RESOLVER", k8s_parameters["dns-resolver"])
+        print(f"{dns_resolver=}")
+        f = f.replace("{{RESOLVER}}", dns_resolver)
 
     with open(f"{output_path}/yamls/ConfigMapNginxGw.yaml", "w") as file:
         file.write(f)

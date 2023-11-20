@@ -5,8 +5,7 @@
       "image": "wmeijer221/microservice_v4-screen:latest",
       "cluster_domain": "cluster",
       "path": "/api/v1",
-      "sleep": 1,
-      "dns-resolver":"kube-dns.kube-system.svc.cluster.local"
+      "sleep": 1
    },
    "InternalServiceFilePath": "CustomFunctions",
    "OutputPath": "SimulationWorkspace",
