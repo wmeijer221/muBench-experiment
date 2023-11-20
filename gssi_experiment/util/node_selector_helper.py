@@ -30,14 +30,14 @@ def get_node_affinity_template(args: Namespace) -> str:
     if len(target_nodes) == 0:
         return ""
 
-    # If it's only one, it will force it to be scheduled on that node.
-    # Using spread constraints incidentally doesn't work here.
-    if len(target_nodes) == 1:
-        node_selector_template = f"""
-  nodeSelector:
-    kubernetes.io/hostname: {target_nodes[0]}
-        """
-        return node_selector_template
+#     # If it's only one, it will force it to be scheduled on that node.
+#     # Using spread constraints incidentally doesn't work here.
+#     if len(target_nodes) == 1:
+#         node_selector_template = f"""
+#   nodeSelector:
+#     kubernetes.io/hostname: {target_nodes[0]}
+#         """
+#         return node_selector_template
 
     equal_distribution_template = """
   affinity:
