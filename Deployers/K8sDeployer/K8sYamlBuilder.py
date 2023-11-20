@@ -232,7 +232,9 @@ def create_deployment_yaml_files(
         f = file.read()
         f = f.replace("{{NAMESPACE}}", namespace)
         f = f.replace("{{PATH}}", k8s_parameters["path"])
-        dns_resolver = os.getenv("K8S_DNS_RESOLVER", k8s_parameters["dns-resolver"])
+        dns_resolver = os.getenv("K8S_DNS_RESOLVER", None)
+        if dns_resolver is None:
+            dns_resolver = k8s_parameters["dns-resolver"]
         print(f"{dns_resolver=}")
         f = f.replace("{{RESOLVER}}", dns_resolver)
 
