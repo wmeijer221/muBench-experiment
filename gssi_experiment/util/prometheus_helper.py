@@ -61,7 +61,7 @@ def _fetch_service_cpu_utilization_from_prometheus(
         f"{prom_user}:{prom_pass}",
         f"{target_endpoint}/api/v1/query_range?start={start}&end={end}&step={DEFAULT_STEP_SIZE_IN_SECONDS}s&",
         "--data-urlencode",
-        'query=sum by (container) (increase(container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*",service="prometheus-kube-prometheus-kubelet"}'
+        'query=sum by (container) (increase(container_cpu_usage_seconds_total{container=~"s.*[0-9].*|gateway.*|gw",service="prometheus-kube-prometheus-kubelet"}'
         + f"[{step_size_in_seconds}s])/{step_size_in_seconds})",
     ]
     print(args)
