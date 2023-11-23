@@ -14,7 +14,7 @@ from argparse import Namespace
 import dotenv
 
 from gssi_experiment.util.prometheus_helper import (
-    CpuUtilizationFetcher,
+    LatestCpuUtilizationFetcher,
     TIME_FORMAT,
 )
 import gssi_experiment.util.mubench_helper as mubench_helper
@@ -52,7 +52,7 @@ def run_experiment(args: Namespace, exp_params: ExperimentParameters):
 
     print(f"Waiting {exp_params.prometheus_fetch_delay}s to fetching Prometheus data.")
     sleep(exp_params.prometheus_fetch_delay)
-    _write_prometheus_data(exp_params.output_folder, start_time, end_time)
+    _write_prometheus_data(exp_params.output_folder)
 
 
 def _run_experiment(
@@ -99,17 +99,13 @@ def _write_mubench_data(output_folder):
     mubench_helper.rewrite_mubench_results(mubench_results_path, mubench_output_path)
 
 
-def _write_prometheus_data(
-    output_folder,
-    start_time: datetime.datetime,
-    end_time: datetime.datetime,
-):
+def _write_prometheus_data(output_folder):
     # Fetches CPU utilization.
-    cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
-    fetch_start = start_time - datetime.timedelta(minutes=2)
-    fetch_end = end_time + datetime.timedelta(minutes=2)
-    fetcher = CpuUtilizationFetcher(cpu_utilization_output_path, fetch_start, fetch_end)
-    fetcher.fetch_service_cpu_utilization()
+    cpu_utilization_output_path = f"{output_folder}/cpu_utilization_raw.csv"
+    fetcher = LatestCpuUtilizationFetcher(
+        cpu_utilization_output_path, time_window_in_minutes=20
+    )
+    fetcher.fetch_latest_cpu_utilization()
 
 
 def _write_metadata(
