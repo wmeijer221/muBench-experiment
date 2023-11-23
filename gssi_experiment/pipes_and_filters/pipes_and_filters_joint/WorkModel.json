@@ -53,17 +53,31 @@
     "namespace": "default"
   },
   "s2": {
-    "external_services": [
-      {
-        "seq_len": 1,
-        "probabilities": {
-          "s3": 1
-        },
-        "services": [
-          "s3"
-        ]
-      }
-    ],
+    "request_type_dependent_external_service": true,
+    "external_services": {
+      "freemium": [
+        {
+          "seq_len": 1,
+          "probabilities": {
+            "s3": 1
+          },
+          "services": [
+            "s3"
+          ]
+        }
+      ],
+      "premium": [
+        {
+          "seq_len": 1,
+          "probabilities": {
+            "s4": 1
+          },
+          "services": [
+            "s4"
+          ]
+        }
+      ]
+    },
     "request_type_dependent_internal_service": true,
     "internal_service": {
       "freemium": {
