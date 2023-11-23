@@ -14,7 +14,7 @@ from argparse import Namespace
 import dotenv
 
 from gssi_experiment.util.prometheus_helper import (
-    fetch_service_cpu_utilization,
+    CpuUtilizationFetcher,
     TIME_FORMAT,
 )
 import gssi_experiment.util.mubench_helper as mubench_helper
@@ -108,7 +108,8 @@ def _write_prometheus_data(
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization.csv"
     fetch_start = start_time - datetime.timedelta(minutes=2)
     fetch_end = end_time + datetime.timedelta(minutes=2)
-    fetch_service_cpu_utilization(cpu_utilization_output_path, fetch_start, fetch_end)
+    fetcher = CpuUtilizationFetcher(cpu_utilization_output_path, fetch_start, fetch_end)
+    fetcher.fetch_service_cpu_utilization()
 
 
 def _write_metadata(
