@@ -161,6 +161,8 @@ class LatestCpuUtilizationFetcher:
         sorting_key = lambda datapoint: datapoint[0]
         with open(self.__output_path, "w+", encoding="utf-8") as output_file:
             csv_writer = csv.writer(output_file)
+            header_row = ["timestamp", *containers]
+            csv_writer.writerow(header_row)
             counter = 0
             for timestamp, value in merge_iterate_through_lists(datas, sorting_key):
                 formatted_timestamp = datetime.datetime.fromtimestamp(timestamp)
