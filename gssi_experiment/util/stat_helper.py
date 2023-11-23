@@ -1,8 +1,10 @@
-import numpy as np
-import pandas as pd
+"""Implements some utility functions to help with statistics etc."""
 
 from dataclasses import dataclass
 import datetime
+
+import numpy as np
+import pandas as pd
 
 
 def mape(expected: pd.Series, real: pd.Series) -> float:
@@ -25,6 +27,7 @@ def mae(expected: pd.Series, real: pd.Series) -> float:
 
 
 def non_nan_avg(series: pd.Series) -> float:
+    """Calculates the average and ignores NaN values."""
     data = [ele for ele in series.values if not np.isnan(ele)]
     return np.average(data)
 
@@ -32,9 +35,11 @@ def non_nan_avg(series: pd.Series) -> float:
 def calculate_average_cpu_time(experiment_folder: str, services: list):
     """Calculates average CPU time using Prometheus' raw data."""
 
+    time_format = "%Y-%m-%d %H:%M:%S.%f"
+    timestamp_key = "timestamp"
+
     data_path = f"{experiment_folder}/cpu_utilization_raw.csv"
     cpu_data = pd.read_csv(data_path)
-
 
     @dataclass
     class Entry:
@@ -51,7 +56,8 @@ def calculate_average_cpu_time(experiment_folder: str, services: list):
             return f"{self.prev_timestamp=}, {self.prev_value=}, {self.total=}, {self.count=}"
 
     def __calculate_avg_cpu_time(services):
-        cols = ["timestamp", *services]
+        """Attempts to calculate the averages with the given services."""
+        cols = [timestamp_key, *services]
 
         tested_data = cpu_data[cols].copy()
         tested_data.dropna(how="all", inplace=True, subset=services)
@@ -70,14 +76,14 @@ def calculate_average_cpu_time(experiment_folder: str, services: list):
                 # Sets initial value for x and y.
                 if entries[service].prev_value is None:
                     entries[service].prev_value = row_data[service]
-                    entries[service].prev_timestamp = row_data["timestamp"]
+                    entries[service].prev_timestamp = row_data[timestamp_key]
                     continue
                 # Calculates changes in time (x).
                 prev_timestamp = datetime.datetime.strptime(
-                    entries[service].prev_timestamp, "%Y-%m-%d %H:%M:%S.%f"
+                    entries[service].prev_timestamp, time_format
                 )
                 curr_timestamp = datetime.datetime.strptime(
-                    row_data["timestamp"], "%Y-%m-%d %H:%M:%S.%f"
+                    row_data[timestamp_key], time_format
                 )
                 dx = (curr_timestamp - prev_timestamp).total_seconds()
                 # calculates change in CPU usage (y).
@@ -86,25 +92,34 @@ def calculate_average_cpu_time(experiment_folder: str, services: list):
                 entries[service].total += dy / dx
                 entries[service].count += 1
                 entries[service].prev_value = entry
-                entries[service].prev_timestamp = row_data["timestamp"]
+                entries[service].prev_timestamp = row_data[timestamp_key]
 
         # Calculates the average.
         try:
             avg = [entry.total / entry.count for _, entry in entries.items()]
-            return list(avg)
         except ZeroDivisionError:
+            # Figures out what service caused the error,
+            # and composes an updated list of service names
+            # to retry with.
             new_services = []
             for service, entry in entries.items():
                 if entry.count == 0:
+                    # This entry caused the error, so a new
+                    # entry name is composed.
                     chunks = service.split(".")
-                    if len(chunks) == 1:
-                        faulty_service = f'{chunks[0]}.1'
-                    else:
-                        faulty_service = f"{chunks[0]}.{int(chunks[1]) + 1}"
+                    faulty_service = (
+                        f"{chunks[0]}.1"
+                        if len(chunks) == 1
+                        else f"{chunks[0]}.{int(chunks[1]) + 1}"
+                    )
                     new_services.append(faulty_service)
                 else:
+                    # non-guilty services are simply forwarded.
                     new_services.append(service)
+            # Retries with the new list.
             print(f"Retrying to calculate averages with services: {new_services}")
-            return __calculate_avg_cpu_time(new_services)
+            avg = __calculate_avg_cpu_time(new_services)
+
+        return list(avg)
 
     return __calculate_avg_cpu_time(services)
