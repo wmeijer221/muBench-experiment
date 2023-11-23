@@ -2,7 +2,7 @@
 Implements general utility functions.
 """
 
-from datetime import datetime
+from datetime import datetime, date
 import io
 import math
 from numbers import Number

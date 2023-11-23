@@ -104,10 +104,3 @@ def _parse_prometheus_cpu_utilization_csv(input_path: str, output_path: str):
 #     datetime.datetime(2023, 11, 8, 19),
 #     datetime.datetime(2023, 11, 10, 5),
 # )
-
-if __name__ == "__main__":
-    fetch_service_cpu_utilization(
-        "./test.txt",
-        datetime.datetime.strptime("2023-11-20T22:52:35.000Z", TIME_FORMAT),
-        datetime.datetime.strptime("2023-11-20T22:59:14.000Z", TIME_FORMAT),
-    )
