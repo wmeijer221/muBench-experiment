@@ -30,3 +30,6 @@ python3 ./gssi_experiment/gateway_aggregator/experiment_runner_wrapper.py \
     --name $EXP_NAME/experiment_$counter
 let counter++
 
+cd ./gssi_experiment/gateway_aggregator/gateway_aggregator_service/
+make delete
+cd ../../..
