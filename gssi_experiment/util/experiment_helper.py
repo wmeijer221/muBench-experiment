@@ -10,6 +10,7 @@ import json
 from os import getenv
 from dataclasses import dataclass
 from argparse import Namespace
+import math
 
 import dotenv
 
@@ -52,7 +53,9 @@ def run_experiment(args: Namespace, exp_params: ExperimentParameters):
 
     print(f"Waiting {exp_params.prometheus_fetch_delay}s to fetching Prometheus data.")
     sleep(exp_params.prometheus_fetch_delay)
-    _write_prometheus_data(exp_params.output_folder)
+    delta_time = (end_time - start_time).seconds
+    data_time_window = math.ceil((delta_time + exp_params.prometheus_fetch_delay) / 60)
+    _write_prometheus_data(exp_params.output_folder, data_time_window)
 
 
 def _run_experiment(
@@ -99,11 +102,15 @@ def _write_mubench_data(output_folder):
     mubench_helper.rewrite_mubench_results(mubench_results_path, mubench_output_path)
 
 
-def _write_prometheus_data(output_folder):
+def _write_prometheus_data(output_folder, data_time_window: int):
     # Fetches CPU utilization.
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization_raw.csv"
+    time_window_padding = 5
+    time_window_in_minutes = data_time_window + time_window_padding
+    print(f"Collecting data in most recent window of {time_window_in_minutes} minutes.")
     fetcher = LatestCpuUtilizationFetcher(
-        cpu_utilization_output_path, time_window_in_minutes=20
+        cpu_utilization_output_path,
+        time_window_in_minutes,
     )
     fetcher.fetch_latest_cpu_utilization()
 

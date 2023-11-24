@@ -7,6 +7,7 @@ import os
 from subprocess import Popen
 import requests
 from requests.auth import HTTPBasicAuth
+from warnings import warn
 
 import dotenv
 
@@ -26,6 +27,11 @@ TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
 
 class CpuUtilizationFetcher:
+    """
+    Collects CPU Utilization data from prometheus by querying the API.
+    This yields aggregated and noisy results.
+    """
+
     def __init__(
         self,
         output_path: str,
@@ -34,6 +40,7 @@ class CpuUtilizationFetcher:
         step_size_in_minutes: int = DEFAULT_WINDOW_SIZE_IN_MINUTES,
         time_offset_in_minutes: int = 0,
     ) -> None:
+        warn("Class `CpuUtilizationFetcher` is deprecated.")
         self.__output_path = os.path.abspath(output_path)
         self.__tmp_output_path = f"{self.__output_path}.tmp"
         self.__start_time = start_time
