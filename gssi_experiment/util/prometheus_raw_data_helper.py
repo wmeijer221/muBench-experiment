@@ -3,6 +3,10 @@ Implements a bunch of code that help with dealing with raw prometheus data.
 When using this only `calculate_average_cpu_time` is relevant. The other stuff
 are all inner functions that deal with NaN value magic, and ensure the calculation 
 actually works and yields the right result.
+
+The main idea is that it attempts to calculate the average CPU usage of the provided
+services during the provided timespan. If it fails to do so, it alters the service names,
+assuming they contain a mistake and retries to calcualte the average cpu usage for those.
 """
 
 import datetime
@@ -15,6 +19,7 @@ import numpy as np
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 TIMESTAMP_KEY = "timestamp"
+PARSED_TIMESTAMP_KEY = "parsed_timestamp"
 
 
 @dataclass
@@ -36,66 +41,68 @@ class Entry:
 
 def calculate_average_cpu_time(
     experiment_folder: str,
-    services: list,
+    service_cols: list,
     start_time: datetime.datetime,
     end_time: datetime.date,
 ):
     """Calculates average CPU time using Prometheus' raw data."""
 
     data_path = f"{experiment_folder}/cpu_utilization_raw.csv"
-    cpu_data = pd.read_csv(data_path)
-    __add_parsed_timestamp(cpu_data)
-    cpu_data = cpu_data[cpu_data["parsed_timestamp"] >= start_time]
-    cpu_data = cpu_data[cpu_data["parsed_timestamp"] <= end_time]
-    return __calculate_avg_cpu_time(cpu_data, services)
+    df = pd.read_csv(data_path)
+    __add_parsed_timestamp(df)
+    df = df[df[PARSED_TIMESTAMP_KEY] >= start_time]
+    df = df[df[PARSED_TIMESTAMP_KEY] <= end_time]
+    return __calculate_avg_cpu_time(df, service_cols)
 
 
 def __add_parsed_timestamp(df: pd.DataFrame):
-    df["parsed_timestamp"] = df["timestamp"].transform(__reshape_timestamp)
+    """Adds a parsed `datetime` timestamp to `df`."""
+
+    def __reshape_timestamp(series: pd.Series):
+        """Applies `datetime.strptme` to a `pd.Series`."""
+        data = []
+        for ele in series.values:
+            try:
+                parsed = datetime.datetime.strptime(ele, TIME_FORMAT)
+            except ValueError:
+                parsed = ""
+            data.append(parsed)
+        ser = pd.Series(data)
+        return ser
+
+    df[PARSED_TIMESTAMP_KEY] = df[TIMESTAMP_KEY].transform(__reshape_timestamp)
     # Removes entries with invalid datetime formats;
     # which are marked by empty strings.
-    invalid_dates = df[df["parsed_timestamp"] == ""]
+    invalid_dates = df[df[PARSED_TIMESTAMP_KEY] == ""]
     df = df.drop(invalid_dates.index)
 
 
-def __reshape_timestamp(series: pd.Series):
-    data = []
-    for ele in series.values:
-        try:
-            parsed = datetime.datetime.strptime(ele, TIME_FORMAT)
-        except:
-            parsed = ""
-        data.append(parsed)
-    ser = pd.Series(data)
-    return ser
-
-
-def __calculate_avg_cpu_time(cpu_data: pd.DataFrame, services: Iterator[str]):
+def __calculate_avg_cpu_time(df: pd.DataFrame, service_cols: Iterator[str]):
     """
     Helper function that can be recursively called.
     Attempts to calculate the averages with the given services.
     """
-    cols = [TIMESTAMP_KEY, *services]
+    cols = [TIMESTAMP_KEY, *service_cols]
 
-    tested_data = cpu_data[cols].copy()
-    tested_data.dropna(how="all", inplace=True, subset=services)
+    tested_data = df[cols].copy()
+    tested_data.dropna(how="all", inplace=True, subset=service_cols)
     tested_data = tested_data.reset_index().drop("index", axis=1)
 
-    entries = __calculate_entries(tested_data, services)
+    entries = __calculate_entries(tested_data, service_cols)
 
     # Calculates the average.
     try:
         avg = [entry.total / entry.count for _, entry in entries.items()]
     except ZeroDivisionError:
-        avg = __retry_calculation(cpu_data, entries)
+        avg = __retry_calculation(df, entries)
 
     return list(avg)
 
 
-def __calculate_entries(tested_data: pd.DataFrame, services: Iterator[str]):
-    entries = {service: Entry() for service in services}
+def __calculate_entries(df: pd.DataFrame, service_col: Iterator[str]):
+    entries = {service: Entry() for service in service_col}
 
-    for row, service in itertools.product(tested_data.iterrows(), services):
+    for row, service in itertools.product(df.iterrows(), service_col):
         row_data = row[1]
         entry = row_data[service]
         # NaN values are ignored.
@@ -126,27 +133,31 @@ def __calculate_entries(tested_data: pd.DataFrame, services: Iterator[str]):
     return entries
 
 
-def __retry_calculation(cpu_data: pd.DataFrame, entries: Iterator[Entry]):
+def __retry_calculation(df: pd.DataFrame, entries: Iterator[Entry]):
     """
     Figures out what service caused the error,
     and composes an updated list of service names
     to retry with.
     """
-    new_services = []
-    for service, entry in entries.items():
+
+    def __build_next_service_col(service_col: str) -> str:
+        """Adds an index as a suffix."""
+        name_chunks = service_col.split(".")
+        if len(name_chunks) == 1:
+            return f"{name_chunks[0]}.1"
+        else:
+            return f"{name_chunks[0]}.{int(name_chunks[1]) + 1}"
+
+    new_service_cols = []
+    for service_col, entry in entries.items():
         if entry.count == 0:
             # This entry caused the error, so a new
             # entry name is composed.
-            chunks = service.split(".")
-            faulty_service = (
-                f"{chunks[0]}.1"
-                if len(chunks) == 1
-                else f"{chunks[0]}.{int(chunks[1]) + 1}"
-            )
-            new_services.append(faulty_service)
+            new_service_col = __build_next_service_col(service_col)
+            new_service_cols.append(new_service_col)
         else:
             # non-guilty services are simply forwarded.
-            new_services.append(service)
+            new_service_cols.append(service_col)
     # Retries with the new list.
-    print(f"Retrying to calculate averages with services: {new_services}")
-    return __calculate_avg_cpu_time(cpu_data, new_services)
+    print(f"Retrying to calculate averages with services: {new_service_cols}")
+    return __calculate_avg_cpu_time(df, new_service_cols)
