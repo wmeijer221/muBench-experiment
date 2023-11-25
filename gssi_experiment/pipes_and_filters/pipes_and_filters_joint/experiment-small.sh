@@ -42,7 +42,6 @@ do
         --shared-cpu-limits 2000m \
         --cpu-limit 1000m \
         --replicas 1 \
-        --name $EXP_NAME/experiment_$counter \
-        --data-fetch-delay 10
+        --name $EXP_NAME/experiment_$counter
     let counter++
 done
