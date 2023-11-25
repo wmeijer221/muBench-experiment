@@ -50,7 +50,7 @@ def create_figure(df: pd.DataFrame, x_key: str, synth_key: str, real_key: str):
 
     # Add labels and a legend
     ax.set_ylabel("Latency (ms)")
-    ax.set_xlabel(x_key)
+    ax.set_xlabel(de_snake_case(x_key))
     ax.set_title("Theoretical and experimental results for response latency")
     ax.legend()
 
@@ -82,7 +82,7 @@ def create_multi_figure(
             lower = tmp_df[y_key] - tmp_df[std_key]
             ax.fill_between(tmp_df[x_key], upper, lower, alpha=0.4)
 
-        ax.set_xlabel(x_key)
+        ax.set_xlabel(de_snake_case(x_key))
         ax.set_ylabel(y_label)
         ax.set_title(f"{split_key}={split}")
 
@@ -100,7 +100,7 @@ def create_plot_comparisons(
     num_cols = 2  # Number of columns for the subplots
 
     # Create a larger figure with subplots
-    _, axes = plt.subplots(num_rows, num_cols, figsize=(8, 8))
+    _, axes = plt.subplots(num_rows, num_cols, figsize=(12, 12))
 
     # Flatten the axes array if there is more than one row
     axes = axes.flatten() if num_rows > 1 else [axes]
@@ -116,10 +116,28 @@ def create_plot_comparisons(
             upper = df[column] + df[std_key]
             lower = df[column] - df[std_key]
             ax.fill_between(df[x_column], upper, lower, alpha=0.4)
-
-        ax.set_xlabel("Dasbhoard Intensity")
+        
+        ax.set_xlabel(de_snake_case(x_column))
         ax.set_ylabel("CPU utilization")
 
     # Adjust layout to prevent overlapping titles
     plt.tight_layout()
     plt.show()
+
+
+def de_snake_case(word: str) -> str:
+    chunks = word.split("_")
+    chunks = [chunk[0].upper() + chunk[1:] for chunk in chunks]
+    word = " ".join(chunks)
+    return word
+
+
+def normalize_field(df: pd.DataFrame, field: str) -> pd.DataFrame:
+    def normalize(x, x_min, x_max):
+        x -= x_min
+        x /= x_max - x_min
+        return x
+
+    min_x, max_x = min(df[field]), max(df[field])
+    df.loc[:, field] = df[field].transform(lambda x: normalize(x, min_x, max_x))
+    return df

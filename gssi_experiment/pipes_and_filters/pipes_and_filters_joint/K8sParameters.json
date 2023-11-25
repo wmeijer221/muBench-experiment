@@ -1,6 +1,6 @@
 {
    "K8sParameters": {
-      "prefix_yaml_file":"MicroServiceDeployment",
+      "prefix_yaml_file": "MicroServiceDeployment",
       "namespace": "default",
       "image": "wmeijer221/microservice_v4-screen:latest",
       "cluster_domain": "cluster",

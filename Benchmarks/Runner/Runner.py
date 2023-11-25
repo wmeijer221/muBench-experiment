@@ -324,7 +324,7 @@ def timely_greedy_runner():
 
     print(
         "Run Duration (sec): %.6f" % run_duration_sec,
-        "Total Requests: %d - Error Request: %d - Timing Error Requests: %d - Average Latency (ms): %.6f - Request rate (req/sec) %.6f"
+        "Total Requests: %d (approx.) - Error Request: %d - Timing Error Requests: %d - Average Latency (ms): %.6f - Request rate (req/sec) %.6f (approx.)"
         % (
             last_processed_message,
             error_requests.value,
