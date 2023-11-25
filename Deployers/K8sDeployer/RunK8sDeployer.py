@@ -203,10 +203,15 @@ def main(force_no_clean: bool = False):
             remove_files(folder)
 
             if args.auto_redeploy:
+                redeploy_delay = (
+                    params["AutomaticRedeployDelay"]
+                    if "AutomaticRedeployDelay" in params
+                    else 30
+                )
                 print("######################")
-                print("Automatically redeploying in 30 seconds!")
+                print(f"Automatically redeploying in {redeploy_delay} seconds!")
                 print("######################")
-                sleep(30)
+                sleep(redeploy_delay)
                 main(force_no_clean=True)
         else:
             print("...\nOk you want to keep the OLD application! Bye!")

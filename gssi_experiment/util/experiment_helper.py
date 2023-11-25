@@ -55,7 +55,7 @@ def run_experiment(args: Namespace, exp_params: ExperimentParameters):
     sleep(exp_params.prometheus_fetch_delay)
     delta_time = (end_time - start_time).seconds
     data_time_window = math.ceil((delta_time + exp_params.prometheus_fetch_delay) / 60)
-    _write_prometheus_data(exp_params.output_folder, data_time_window)
+    _write_prometheus_data(exp_params.output_folder, data_time_window, start_time)
 
 
 def _run_experiment(
@@ -102,7 +102,7 @@ def _write_mubench_data(output_folder):
     mubench_helper.rewrite_mubench_results(mubench_results_path, mubench_output_path)
 
 
-def _write_prometheus_data(output_folder, data_time_window: int):
+def _write_prometheus_data(output_folder, data_time_window: int, start_time: datetime.datetime):
     # Fetches CPU utilization.
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization_raw.csv"
     time_window_padding = 5
@@ -111,6 +111,7 @@ def _write_prometheus_data(output_folder, data_time_window: int):
     fetcher = LatestCpuUtilizationFetcher(
         cpu_utilization_output_path,
         time_window_in_minutes,
+        start_time
     )
     fetcher.fetch_latest_cpu_utilization()
 

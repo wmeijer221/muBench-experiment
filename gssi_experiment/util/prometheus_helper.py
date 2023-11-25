@@ -5,9 +5,11 @@ import datetime
 import json
 import os
 from subprocess import Popen
+from warnings import warn
+
 import requests
 from requests.auth import HTTPBasicAuth
-from warnings import warn
+import regex as re
 
 import dotenv
 
@@ -122,15 +124,22 @@ class CpuUtilizationFetcher:
 
 
 class LatestCpuUtilizationFetcher:
-    def __init__(self, output_path: str, time_window_in_minutes: int) -> None:
+    def __init__(
+        self,
+        output_path: str,
+        time_window_in_minutes: int,
+        start_time: datetime.datetime,
+    ) -> None:
         self.__output_path = os.path.abspath(output_path)
         self.__tmp_output_path = f"{self.__output_path}.tmp"
         self.__time_window_in_minutes = time_window_in_minutes
+        self.__start_time = start_time
 
     def fetch_latest_cpu_utilization(self):
         """Does the same thing as V1, just differently."""
         self.__fetch_latest_cpu_utilization_from_prometheus()
         self.__parse_prometheus_cpu_utilization_csv_v2()
+        self.__prioritize_entries()
         os.remove(self.__tmp_output_path)
 
     def __fetch_latest_cpu_utilization_from_prometheus(self):
@@ -145,6 +154,7 @@ class LatestCpuUtilizationFetcher:
 
         auth = HTTPBasicAuth(prom_user, prom_pass)
         response = requests.get(endpoint, params=url_params, auth=auth)
+        print(f"Prometheus response status: {response.status_code}")
 
         with open(self.__tmp_output_path, "w+", encoding="utf-8") as output_file:
             output_file.write(response.text)
@@ -152,18 +162,33 @@ class LatestCpuUtilizationFetcher:
     def __parse_prometheus_cpu_utilization_csv_v2(self):
         """Does the same as v1 but differently."""
 
+        def __get_container_name(entry) -> "str | None":
+            if os.getenv("USE_MINIKUBE", "false").lower() == "true":
+                # HACK: Somehow `container` doesn't exist in Minikube deployments.
+                if not "pod" in entry["metric"]:
+                    return None
+                entry = entry["metric"]["pod"].split("-")[0]
+                if not re.match(r"s[0-9].*", entry):
+                    return None
+                return entry
+            else:
+                if not "container" in entry["metric"]:
+                    return None
+                return entry["metric"]["container"]
+
         with open(self.__tmp_output_path, "r", encoding="utf-8") as input_file:
             j_data = json.loads(input_file.read())
 
         containers = list()
         datas = list()
         for entry in j_data["data"]["result"]:
-            if not "container" in entry["metric"]:
+            container = __get_container_name(entry)
+            if container is None:
                 continue
-            container = entry["metric"]["container"]
             containers.append(container)
             data = entry["values"]
             datas.append(data)
+        print(f"Found {containers=}")
 
         sorting_key = lambda datapoint: datapoint[0]
         with open(self.__output_path, "w+", encoding="utf-8") as output_file:
@@ -173,6 +198,8 @@ class LatestCpuUtilizationFetcher:
             counter = 0
             for timestamp, value in merge_iterate_through_lists(datas, sorting_key):
                 formatted_timestamp = datetime.datetime.fromtimestamp(timestamp)
+                if formatted_timestamp < self.__start_time:
+                    continue
                 data_row = [
                     (value[key][1] if key in value else "")
                     for key, _ in enumerate(containers)
@@ -181,6 +208,66 @@ class LatestCpuUtilizationFetcher:
                 csv_writer.writerow(data_row)
                 counter += 1
             print(f"Wrote {counter} CPU utilization entries.")
+
+    def __prioritize_entries(self):
+        """Prioritizes entries based on their appearance so the data is analyzed in the right order."""
+        with open(self.__output_path, "r", encoding="utf-8") as input_file:
+            csv_reader = csv.reader(input_file)
+            header = next(csv_reader)
+
+            counter = [0] * (len(header) - 1)
+            first = [-1] * len(counter)
+            rows = []
+            for row_idx, row in enumerate(csv_reader):
+                rows.append(row)
+                for col_idx, col in enumerate(row[1:]):
+                    if col != "":
+                        # Counts entries per service.
+                        counter[col_idx] += 1
+                        # Updates the first appearance of the element.
+                        if first[col_idx] == -1:
+                            first[col_idx] = row_idx
+
+        # Collects the found entries per column.
+        entries = {ele: [] for ele in set(header[1:])}
+        for idx, (key, first) in enumerate(zip(header[1:], first)):
+            if first == -1:
+                continue
+            entries[key].append((idx, first))
+
+        # Generates new header based on the first appearance.
+        header = list(header)
+        for key, vals in entries.items():
+            vals = sorted(vals, key=lambda x: -x[1])
+
+            for c, (idx, _) in enumerate(vals):
+                if c == 0:
+                    continue
+                header[idx] = f"{header[idx]}.{c}"
+
+        def __filter_row(row):
+            return [
+                row[0],
+                *[col for col_idx, col in enumerate(row[1:]) if counter[col_idx] > 0],
+            ]
+
+        with open(self.__output_path, "w+", encoding="utf-8") as output_file:
+            csv_writer = csv.writer(output_file)
+            new_header = __filter_row(header)
+            print(f"{new_header=}")
+            csv_writer.writerow(new_header)
+            for row in rows:
+                new_row = __filter_row(row)
+                csv_writer.writerow(new_row)
+
+
+# strt = datetime.datetime.strptime("2023-11-24 18:30:59.505000", "%Y-%m-%d %H:%M:%S.%f")
+# fetcher = LatestCpuUtilizationFetcher(
+#     "gssi_experiment/pipes_and_filters/pipes_and_filters_joint/results/small_local_test/experiment_2001/2023_11_24/0_steps/cpu_utilization_raw.csv",
+#     8,
+#     strt,
+# )
+# fetcher.clean_minikube_nonsense()
 
 
 # Test code

@@ -68,8 +68,16 @@ def init_args(base_folder) -> argparse.ArgumentParser:
         action="store",
         dest="wait_for_pods_delay",
         type=int,
-        default=10,
+        default=15,
         help="The number of seconds that we will wait for pods to start.",
+    )
+    parser.add_argument(
+        "--data-fetch-delay",
+        action="store",
+        dest="data_fetch_delay",
+        type=int,
+        default=30,
+        help="The number of seconds that we will wait before CPU data is fetched.",
     )
 
     return parser

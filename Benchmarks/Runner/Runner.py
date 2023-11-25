@@ -206,6 +206,7 @@ def select_endpoint_by_header(
 
 runner_start_time: datetime = None
 timely_runner_is_done: bool = False
+last_processed_message: int = -1
 
 
 def get_endpoint_picker(runner_params: dict) -> Tuple[Callable, str]:
@@ -221,7 +222,7 @@ def get_endpoint_picker(runner_params: dict) -> Tuple[Callable, str]:
 
     if isinstance(srv, dict):
         picker = partial(select_endpoint_by_header, header_key=srv["header_key"])
-        srv = runner_params["ingress_service"]['services']
+        srv = runner_params["ingress_service"]["services"]
 
     return picker, srv
 
@@ -247,7 +248,7 @@ def timely_greedy_runner():
     slow_start_delay = 0.1
 
     def on_response_received(_fut: Future):
-        global runner_start_time, timely_runner_is_done
+        global runner_start_time, timely_runner_is_done, last_processed_message
         runner_current_time = datetime.now()
         runner_passed_time = runner_current_time - runner_start_time
         runner_minutes_spent = runner_passed_time.seconds / 60.0
@@ -259,9 +260,11 @@ def timely_greedy_runner():
             # Kills all of the remaining requests.
             print(f"Passed the maximum time: {max_runner_time_in_minutes} minutes.")
             pool.shutdown(wait=False)
-            for future in futures:
+            for idx, future in enumerate(futures):
                 if not future.done():
                     future.cancel()
+                    if last_processed_message == -1:
+                        last_processed_message = idx
 
     try:
         runner_start_time = datetime.now()
@@ -323,11 +326,11 @@ def timely_greedy_runner():
         "Run Duration (sec): %.6f" % run_duration_sec,
         "Total Requests: %d - Error Request: %d - Timing Error Requests: %d - Average Latency (ms): %.6f - Request rate (req/sec) %.6f"
         % (
-            workload_events,
+            last_processed_message,
             error_requests.value,
             timing_error_requests,
             avg_latency,
-            1.0 * workload_events / run_duration_sec,
+            1.0 * last_processed_message / run_duration_sec,
         ),
     )
 

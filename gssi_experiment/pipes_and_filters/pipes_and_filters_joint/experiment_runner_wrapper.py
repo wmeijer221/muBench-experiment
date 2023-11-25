@@ -62,9 +62,7 @@ def run_the_experiment():
     ns_helper.load_and_write_node_affinity_template(args, mubench_k8s_template_folder)
     k8s_param_path = os.path.dirname(__file__) + "/K8sParameters.json"
     k8s_params_file_path = f"{k8s_param_path}.tmp"
-    passed_cpu_limit = (
-        None if args.only_shared_cpu_limits else args.cpu_limit
-    )
+    passed_cpu_limit = None if args.only_shared_cpu_limits else args.cpu_limit
     tmp_doc_helper.write_tmp_k8s_params(
         k8s_param_path, k8s_params_file_path, passed_cpu_limit, args.replicas
     )
@@ -84,6 +82,7 @@ def run_the_experiment():
             mubench_k8s_template_folder,
             exp_helper.get_output_folder(BASE_FOLDER, args.name, step_idx),
             args.wait_for_pods_delay,
+            args.data_fetch_delay,
         )
         exp_helper.run_experiment(args, exp_params)
 
