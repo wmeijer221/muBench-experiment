@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_1
+EXP_NAME=pinciroli_replication_2
 BASE_PATH=./gssi_experiment/gateway_aggregator/results/$EXP_NAME
 
 LOGS_PATH=$BASE_PATH/logs.out
@@ -18,17 +18,23 @@ STEPS=5
 RERUNS=3
 VARIABLE=1
 
+
+
 let counter=1
 
-python3 ./gssi_experiment/gateway_aggregator/experiment_runner_wrapper.py \
-    --wait-for-pods $DELAY \
-    --node-selector $BIG_NODE,minikube \
-    --steps $STEPS \
-    --seed $counter \
-    --cpu-limit 1000m \
-    --replicas 1 \
-    --name $EXP_NAME/experiment_$counter
-let counter++
+for RUN in {1..3}
+do
+    echo Starting run $RUN
+    python3 ./gssi_experiment/gateway_aggregator/experiment_runner_wrapper.py \
+        --wait-for-pods $DELAY \
+        --node-selector $BIG_NODE,minikube \
+        --steps $STEPS \
+        --seed $counter \
+        --cpu-limit 1000m \
+        --replicas 1 \
+        --name $EXP_NAME/experiment_$counter
+    let counter++
+done
 
 cd ./gssi_experiment/gateway_aggregator/gateway_aggregator_service/
 make delete

@@ -78,6 +78,7 @@ def get_experimental_config_iterator() -> Iterator[Tuple[int, int]]:
         int(ele) for ele in args.gateway_load_range[1:-1].split(",")
     )
     gateway_steps = util.shuffled_range(gw_min, gw_max + 1, gw_step)
+    print(f'{gateway_steps=}')
     return itertools.product(gateway_steps, sim_steps)
 
 

@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_1
+EXP_NAME=pinciroli_replication_2
 BASE_PATH=./gssi_experiment/gateway_offloading/results/$EXP_NAME
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH
@@ -15,13 +15,17 @@ STEPS=5
 
 let counter=1000
 
-python3 ./gssi_experiment/gateway_offloading/experiment_runner_wrapper.py \
-    --wait-for-pods $DELAY \
-    --node-selector $BIG_NODE,minikube \
-    --steps $STEPS \
-    --seed $counter \
-    --replicas 1 \
-    --cpu-limit 1000m \
-    --gateway-load "[0,10,2]" \
-    --name $EXP_NAME/experiment_$counter
-let counter++
+for RUN in {1..3}
+do
+    echo Start run $RUN
+    python3 ./gssi_experiment/gateway_offloading/experiment_runner_wrapper.py \
+        --wait-for-pods $DELAY \
+        --node-selector $BIG_NODE,minikube \
+        --steps $STEPS \
+        --seed $counter \
+        --replicas 1 \
+        --cpu-limit 1000m \
+        --gateway-load "[0,10,5]" \
+        --name $EXP_NAME/experiment_$counter
+    let counter++
+done

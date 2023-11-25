@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_1
+EXP_NAME=pinciroli_replication_2
 BASE_PATH=./gssi_experiment/pipes_and_filters/pipes_and_filters_separated/results/$EXP_NAME
 
 LOGS_PATH=$BASE_PATH/logs.out
@@ -19,13 +19,16 @@ VARIABLE=1
 
 let counter=3000
 
-python3 ./gssi_experiment/pipes_and_filters/pipes_and_filters_separated/experiment_runner_wrapper.py \
-    --wait-for-pods $DELAY \
-    --node-selector $BIG_NODE,minikube \
-    --steps $STEPS \
-    --seed $counter \
-    --cpu-limit 1000m \
-    --replicas 1 \
-    --name $EXP_NAME/experiment_$VARIABLE
-let counter++
-
+for RUN in {1..3}
+do
+    echo Start run $RUN
+    python3 ./gssi_experiment/pipes_and_filters/pipes_and_filters_separated/experiment_runner_wrapper.py \
+        --wait-for-pods $DELAY \
+        --node-selector $BIG_NODE,minikube \
+        --steps $STEPS \
+        --seed $counter \
+        --cpu-limit 1000m \
+        --replicas 1 \
+        --name $EXP_NAME/experiment_$counter
+    let counter++
+done
