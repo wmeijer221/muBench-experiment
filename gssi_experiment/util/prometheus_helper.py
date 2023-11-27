@@ -167,7 +167,9 @@ class LatestCpuUtilizationFetcher:
                 # HACK: Somehow `container` doesn't exist in Minikube deployments.
                 if not "pod" in entry["metric"]:
                     return None
-                entry = entry["metric"]["pod"].split("-")[0]
+                # Removes the random string at the end of the name.
+                entry = entry["metric"]["pod"].split("-")[0:-1]
+                entry = "-".join(entry)
                 if not re.match(r"s[0-9].*", entry):
                     return None
                 return entry
