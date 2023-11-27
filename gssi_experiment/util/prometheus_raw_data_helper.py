@@ -11,7 +11,7 @@ assuming they contain a mistake and retries to calcualte the average cpu usage f
 
 import datetime
 from dataclasses import dataclass
-from typing import Iterator
+from typing import Iterator, Dict
 import itertools
 
 import pandas as pd
@@ -21,8 +21,11 @@ TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 TIMESTAMP_KEY = "timestamp"
 PARSED_TIMESTAMP_KEY = "parsed_timestamp"
 
+MAX_RETRIES = 10
+__retries = 0
 
-@dataclass
+
+@dataclass()
 class Entry:
     """
     Data class for calculating average CPU usage over time.
@@ -33,10 +36,18 @@ class Entry:
     total = 0
     count = 0
 
+    # HACK: Same reason as in `__build_initial_services`.
+    def __init__(self, total: int = 0, count: int = 0) -> None:
+        self.total = total
+        self.count = count
+
     def __str__(self) -> str:
         return (
             f"{self.prev_timestamp=}, {self.prev_value=}, {self.total=}, {self.count=}"
         )
+
+
+# TODO: Change all of this to be a class.
 
 
 def calculate_average_cpu_time(
@@ -46,13 +57,36 @@ def calculate_average_cpu_time(
     end_time: datetime.date,
 ):
     """Calculates average CPU time using Prometheus' raw data."""
+    global __retries
 
+    __retries = 0
     data_path = f"{experiment_folder}/cpu_utilization_raw.csv"
     df = pd.read_csv(data_path)
-    __add_parsed_timestamp(df)
+    service_cols = __build_initial_services(df, service_cols)
+    df = __add_parsed_timestamp(df)
     df = df[df[PARSED_TIMESTAMP_KEY] >= start_time]
     df = df[df[PARSED_TIMESTAMP_KEY] <= end_time]
     return __calculate_avg_cpu_time(df, service_cols)
+
+
+def __build_initial_services(
+    df: pd.DataFrame, service_cols: Iterator[str]
+) -> Iterator[str]:
+    # HACK: Only necessary when the column suffix indices aren't set correctly (e.g., 'gw.1' exists but 'gw' doesn't).
+    new_service_cols = service_cols
+    for _ in range(MAX_RETRIES):
+        service_has_col_in_df = [serv in df.columns for serv in new_service_cols]
+        if all(service_has_col_in_df):
+            return new_service_cols
+        else:
+            fake_entries = {
+                serv: Entry(count=1) if is_present else Entry(count=0)
+                for serv, is_present in zip(new_service_cols, service_has_col_in_df)
+            }
+            new_service_cols = __build_new_services(fake_entries)
+            print(f"Updating initial services to: {new_service_cols}")
+
+    raise ValueError(f"Could not find requested services in df: {service_cols}.")
 
 
 def __add_parsed_timestamp(df: pd.DataFrame):
@@ -70,11 +104,13 @@ def __add_parsed_timestamp(df: pd.DataFrame):
         ser = pd.Series(data)
         return ser
 
+    df = df.copy()
     df[PARSED_TIMESTAMP_KEY] = df[TIMESTAMP_KEY].transform(__reshape_timestamp)
     # Removes entries with invalid datetime formats;
     # which are marked by empty strings.
     invalid_dates = df[df[PARSED_TIMESTAMP_KEY] == ""]
     df = df.drop(invalid_dates.index)
+    return df
 
 
 def __calculate_avg_cpu_time(df: pd.DataFrame, service_cols: Iterator[str]):
@@ -88,6 +124,7 @@ def __calculate_avg_cpu_time(df: pd.DataFrame, service_cols: Iterator[str]):
     tested_data.dropna(how="all", inplace=True, subset=service_cols)
     tested_data = tested_data.reset_index().drop("index", axis=1)
 
+    # Tests if the names are present or not.
     entries = __calculate_entries(tested_data, service_cols)
 
     # Calculates the average.
@@ -140,6 +177,22 @@ def __retry_calculation(df: pd.DataFrame, entries: Iterator[Entry]):
     to retry with.
     """
 
+    global __retries
+
+    if __retries >= MAX_RETRIES:
+        raise ValueError(
+            "Failed to calculate average CPU utilization with provided services."
+        )
+    __retries += 1
+
+    new_service_cols = __build_new_services(entries)
+
+    # Retries with the new list.
+    print(f"Retrying to calculate averages with services: {new_service_cols}")
+    return __calculate_avg_cpu_time(df, new_service_cols)
+
+
+def __build_new_services(entries: Dict[str, Entry]) -> Iterator[str]:
     def __build_next_service_col(service_col: str) -> str:
         """Adds an index as a suffix."""
         name_chunks = service_col.split(".")
@@ -158,6 +211,5 @@ def __retry_calculation(df: pd.DataFrame, entries: Iterator[Entry]):
         else:
             # non-guilty services are simply forwarded.
             new_service_cols.append(service_col)
-    # Retries with the new list.
-    print(f"Retrying to calculate averages with services: {new_service_cols}")
-    return __calculate_avg_cpu_time(df, new_service_cols)
+
+    return new_service_cols
