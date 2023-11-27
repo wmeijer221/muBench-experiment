@@ -1,4 +1,5 @@
 import typing
+import math
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -65,11 +66,10 @@ def create_multi_figure(
     splits.sort()
     num_subplots = len(splits)
 
-    num_rows = num_subplots // 2
+    num_rows = math.ceil(num_subplots / 2)
     num_cols = 2
     _, axes = plt.subplots(num_rows, num_cols, figsize=(12, 12))
     axes = axes.flatten() if num_rows > 1 else [axes]
-
     for i, split in enumerate(splits):
         tmp_df: pd.DataFrame = df[df[split_key] == split]
         ax: plt.Axes = axes[i]
@@ -96,7 +96,7 @@ def create_plot_comparisons(
     # Calculate the number of subplots based on the length of comparison_tuples
     num_subplots = len(comparison_tuples)
     # Determine the number of rows and columns for the subplots
-    num_rows = num_subplots // 2  # Assuming 2 columns
+    num_rows = math.ceil(num_subplots / 2)  # Assuming 2 columns
     num_cols = 2  # Number of columns for the subplots
 
     # Create a larger figure with subplots
