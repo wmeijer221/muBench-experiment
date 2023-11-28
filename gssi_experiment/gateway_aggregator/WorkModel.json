@@ -13,8 +13,8 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              200,
-              200
+              220,
+              220
             ],
             "thread_pool_size": 1,
             "trials": 18
@@ -28,8 +28,8 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              200,
-              200
+              220,
+              220
             ],
             "thread_pool_size": 1,
             "trials": 7
@@ -55,8 +55,8 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              200,
-              200
+              220,
+              220
             ],
             "thread_pool_size": 1,
             "trials": 12
@@ -70,8 +70,8 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              200,
-              200
+              220,
+              220
             ],
             "thread_pool_size": 1,
             "trials": 15
@@ -97,8 +97,8 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              200,
-              200
+              220,
+              220
             ],
             "thread_pool_size": 1,
             "trials": 5
@@ -112,8 +112,8 @@
           "cpu_stress": {
             "run": true,
             "range_complexity": [
-              200,
-              200
+              220,
+              220
             ],
             "thread_pool_size": 1,
             "trials": 20

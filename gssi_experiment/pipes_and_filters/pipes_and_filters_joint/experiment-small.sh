@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_2
+EXP_NAME=pinciroli_replication_3
 BASE_PATH=./gssi_experiment/pipes_and_filters/pipes_and_filters_joint/results/$EXP_NAME
 
 LOGS_PATH=$BASE_PATH/logs.out
@@ -19,7 +19,7 @@ VARIABLE=1
 
 let counter=2000
 
-for RUN in {1..3}
+for RUN in {1..1}
 do
     echo Start run $RUN
 
