@@ -164,6 +164,7 @@ class LatestCpuUtilizationFetcher:
 
         def __get_container_name(entry) -> "str | None":
             if os.getenv("USE_MINIKUBE", "false").lower() == "true":
+                print("USING THE MINIKUBE SETTINGS")
                 # HACK: Somehow `container` doesn't exist in Minikube deployments.
                 if not "pod" in entry["metric"]:
                     return None

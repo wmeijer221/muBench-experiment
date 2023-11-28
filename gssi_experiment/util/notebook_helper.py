@@ -20,9 +20,9 @@ def to_averaged_df(
 
     avg_df: pd.DataFrame = grp_df.mean(averaged_columns)
 
+    # Sets standard deviation
     std_df: pd.DataFrame = grp_df.std()
-    std_columns = [f"std_{col}" for col in std_df.columns if not col in group_on]
-    std_df.columns = std_columns
+    std_df.columns =  [f"std_{col}" for col in std_df.columns if not col in group_on]
     avg_df = avg_df.merge(std_df, on=group_on)
 
     if len(group_on) > 1:
