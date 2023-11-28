@@ -1,5 +1,6 @@
 import typing
 import math
+from numbers import Number
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -116,7 +117,7 @@ def create_plot_comparisons(
             upper = df[column] + df[std_key]
             lower = df[column] - df[std_key]
             ax.fill_between(df[x_column], upper, lower, alpha=0.4)
-        
+
         ax.set_xlabel(de_snake_case(x_column))
         ax.set_ylabel("CPU utilization")
 
@@ -141,3 +142,18 @@ def normalize_field(df: pd.DataFrame, field: str) -> pd.DataFrame:
     min_x, max_x = min(df[field]), max(df[field])
     df.loc[:, field] = df[field].transform(lambda x: normalize(x, min_x, max_x))
     return df
+
+
+def normalize_field_and_yield_min_max(
+    df: pd.DataFrame, field: str
+) -> typing.Tuple[pd.DataFrame, Number, Number]:
+    df = df.copy()
+    min_x, max_x = min(df[field]), max(df[field])
+    df.loc[:, field] = df[field].transform(lambda x: normalize(x, min_x, max_x))
+    return df, min_x, max_x
+
+
+def normalize(x, x_min, x_max):
+    x -= x_min
+    x /= x_max - x_min
+    return x

@@ -140,6 +140,7 @@ SimulationWorkspace/yamls/*
 SimulationWorkspace/Result/*
 gssi_experiment/**/results/*
 *.tmp
+gssi_experiment/**/figures/*
 
 # Other people's data.
 gssi_experiment/gateway_offloading/multi_N25.csv
@@ -149,3 +150,4 @@ gssi_experiment/pipes_and_filters/pipes_and_filters_joint/Core2_N50.csv
 gssi_experiment/pipes_and_filters/pipes_and_filters_separated/Core1_N50.csv
 gssi_experiment/gateway_aggregator/multi_N25.csv
 gssi_experiment/util/posterior_prometheus_fetcher_data.csv
+
