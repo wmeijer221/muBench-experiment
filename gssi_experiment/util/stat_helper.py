@@ -1,8 +1,5 @@
 """Implements some utility functions to help with statistics etc."""
 
-from dataclasses import dataclass
-import datetime
-
 import numpy as np
 import pandas as pd
 
