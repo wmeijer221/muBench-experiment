@@ -1,0 +1,26 @@
+{
+  "s1": {
+    "internal_service": {
+      "loader": {
+        "cpu_stress": {
+          "run": true,
+          "range_complexity": [
+            265,
+            265
+          ],
+          "thread_pool_size": 1,
+          "trials": 12
+        },
+        "mean_bandwidth": 1,
+        "function_id": "compute_pi"
+      }
+    },
+    "request_method": "rest",
+    "workers": 9,
+    "threads": 128,
+    "url": "s1.default.svc.cluster.local",
+    "path": "/api/v1",
+    "image": "msvcbench/microservice_v3-screen:1.0",
+    "namespace": "default"
+  }
+}

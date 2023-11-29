@@ -135,12 +135,16 @@ class LatestCpuUtilizationFetcher:
         self.__time_window_in_minutes = time_window_in_minutes
         self.__start_time = start_time
 
-    def fetch_latest_cpu_utilization(self):
+    def fetch_latest_cpu_utilization(
+        self, fetch_new_data: bool = True, delete_tmp: bool = True
+    ):
         """Does the same thing as V1, just differently."""
-        self.__fetch_latest_cpu_utilization_from_prometheus()
+        if fetch_new_data:
+            self.__fetch_latest_cpu_utilization_from_prometheus()
         self.__parse_prometheus_cpu_utilization_csv_v2()
         self.__prioritize_entries()
-        os.remove(self.__tmp_output_path)
+        if delete_tmp:
+            os.remove(self.__tmp_output_path)
 
     def __fetch_latest_cpu_utilization_from_prometheus(self):
         prom_user = os.getenv("PROM_USER")
@@ -262,22 +266,3 @@ class LatestCpuUtilizationFetcher:
             for row in rows:
                 new_row = __filter_row(row)
                 csv_writer.writerow(new_row)
-
-
-# strt = datetime.datetime.strptime("2023-11-24 18:30:59.505000", "%Y-%m-%d %H:%M:%S.%f")
-# fetcher = LatestCpuUtilizationFetcher(
-#     "gssi_experiment/pipes_and_filters/pipes_and_filters_joint/results/small_local_test/experiment_2001/2023_11_24/0_steps/cpu_utilization_raw.csv",
-#     8,
-#     strt,
-# )
-# fetcher.clean_minikube_nonsense()
-
-
-# Test code
-# fetcher = CpuUtilizationFetcher(
-#     "./test.csv", datetime.datetime(2023, 11, 8, 19), datetime.datetime(2023, 11, 10, 5)
-# )
-# fetcher.fetch_service_cpu_utilization()
-
-# fetcher = LatestCpuUtilizationFetcher("./test.csv", 1 * 60)
-# fetcher.fetch_latest_cpu_utilization()

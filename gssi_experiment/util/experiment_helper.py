@@ -135,8 +135,8 @@ def _write_metadata(
             "runner_parameters": util.load_json(exp_params.runner_parameter_path),
         },
     }
-    meta_data["work_model"]["experiment_files"] = util.load_json(
-        meta_data["k8s_parameters"]["WorkModelPath"]
+    meta_data["experiment_files"]["work_model"] = util.load_json(
+        meta_data["experiment_files"]["k8s_parameters"]["WorkModelPath"]
     )
     with open(
         f"{output_folder}/metadata.json", "w+", encoding="utf-8"

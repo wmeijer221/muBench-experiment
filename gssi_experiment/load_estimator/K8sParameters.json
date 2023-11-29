@@ -1,0 +1,14 @@
+{
+   "K8sParameters": {
+      "prefix_yaml_file": "MicroServiceDeployment",
+      "namespace": "default",
+      "image": "wmeijer221/microservice_v4-screen:latest",
+      "cluster_domain": "cluster",
+      "path": "/api/v1",
+      "sleep": 1
+   },
+   "AutomaticRedeployDelay": 1,
+   "InternalServiceFilePath": "CustomFunctions",
+   "OutputPath": "SimulationWorkspace",
+   "WorkModelPath": "./gssi_experiment/load_estimator/WorkModel.json.tmp"
+}

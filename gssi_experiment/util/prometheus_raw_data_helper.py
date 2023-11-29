@@ -11,7 +11,7 @@ assuming they contain a mistake and retries to calcualte the average cpu usage f
 
 import datetime
 from dataclasses import dataclass
-from typing import Iterator, Dict
+from typing import Iterator, Dict, List
 import itertools
 
 import pandas as pd
@@ -63,7 +63,7 @@ def calculate_average_cpu_time(
     data_path = f"{experiment_folder}/cpu_utilization_raw.csv"
     df = pd.read_csv(data_path)
     service_cols = __build_initial_services(df, service_cols)
-    df = __add_parsed_timestamp(df)
+    df = add_parsed_timestamp(df)
     df = df[df[PARSED_TIMESTAMP_KEY] >= start_time]
     df = df[df[PARSED_TIMESTAMP_KEY] <= end_time]
     return __calculate_avg_cpu_time(df, service_cols)
@@ -89,7 +89,7 @@ def __build_initial_services(
     raise ValueError(f"Could not find requested services in df: {service_cols}.")
 
 
-def __add_parsed_timestamp(df: pd.DataFrame):
+def add_parsed_timestamp(df: pd.DataFrame):
     """Adds a parsed `datetime` timestamp to `df`."""
 
     def __reshape_timestamp(series: pd.Series):
@@ -113,7 +113,17 @@ def __add_parsed_timestamp(df: pd.DataFrame):
     return df
 
 
-def __calculate_avg_cpu_time(df: pd.DataFrame, service_cols: Iterator[str]):
+def calculate_average_cpu_time_from_df(
+    df: pd.DataFrame, service_cols: Iterator[str]
+) -> List[float]:
+    """Does the ame as ``calculate_average_cpu_time``, however,
+    with fewer assurances that the calculation will work."""
+    return __calculate_avg_cpu_time(df, service_cols)
+
+
+def __calculate_avg_cpu_time(
+    df: pd.DataFrame, service_cols: Iterator[str]
+) -> List[float]:
     """
     Helper function that can be recursively called.
     Attempts to calculate the averages with the given services.
