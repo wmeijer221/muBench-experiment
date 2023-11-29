@@ -2,8 +2,9 @@
 Implements general utility functions.
 """
 
-from datetime import datetime, date
+from datetime import datetime
 import io
+import json
 import math
 from numbers import Number
 import os
@@ -439,3 +440,9 @@ def shuffled_range(start=0, end=100, step=1):
     lst = list(range(start, end, step))
     random.shuffle(lst)
     return lst
+
+
+def load_json(file_path: str) -> dict:
+    with open(file_path, "r", encoding="utf-8") as json_doc:
+        j_data = json.loads(json_doc.read())
+    return j_data

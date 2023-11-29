@@ -14,6 +14,7 @@ import math
 
 import dotenv
 
+import gssi_experiment.util.util as util
 from gssi_experiment.util.prometheus_helper import (
     LatestCpuUtilizationFetcher,
     TIME_FORMAT,
@@ -102,16 +103,16 @@ def _write_mubench_data(output_folder):
     mubench_helper.rewrite_mubench_results(mubench_results_path, mubench_output_path)
 
 
-def _write_prometheus_data(output_folder, data_time_window: int, start_time: datetime.datetime):
+def _write_prometheus_data(
+    output_folder, data_time_window: int, start_time: datetime.datetime
+):
     # Fetches CPU utilization.
     cpu_utilization_output_path = f"{output_folder}/cpu_utilization_raw.csv"
     time_window_padding = 5
     time_window_in_minutes = data_time_window + time_window_padding
     print(f"Collecting data in most recent window of {time_window_in_minutes} minutes.")
     fetcher = LatestCpuUtilizationFetcher(
-        cpu_utilization_output_path,
-        time_window_in_minutes,
-        start_time
+        cpu_utilization_output_path, time_window_in_minutes, start_time
     )
     fetcher.fetch_latest_cpu_utilization()
 
@@ -129,7 +130,14 @@ def _write_metadata(
         "end_time": end_time.strftime(TIME_FORMAT),
         "experiment_parameters": exp_params.__dict__,
         "cmd_arguments": args.__dict__,
+        "experiment_files": {
+            "k8s_parameters": util.load_json(exp_params.k8s_parameters_path),
+            "runner_parameters": util.load_json(exp_params.runner_parameter_path),
+        },
     }
+    meta_data["work_model"]["experiment_files"] = util.load_json(
+        meta_data["k8s_parameters"]["WorkModelPath"]
+    )
     with open(
         f"{output_folder}/metadata.json", "w+", encoding="utf-8"
     ) as metadata_output_file:
