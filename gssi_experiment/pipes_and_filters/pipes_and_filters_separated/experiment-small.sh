@@ -19,7 +19,7 @@ VARIABLE=1
 
 let counter=3000
 
-for RUN in {1..1}
+for RUN in {1..6}
 do
     echo Start run $RUN
     python3 ./gssi_experiment/pipes_and_filters/pipes_and_filters_separated/experiment_runner_wrapper.py \
