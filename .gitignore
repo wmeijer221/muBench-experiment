@@ -140,6 +140,7 @@ SimulationWorkspace/yamls/*
 SimulationWorkspace/Result/*
 gssi_experiment/**/results/*
 *.tmp
+*.out
 gssi_experiment/**/figures/*
 
 # Other people's data.
