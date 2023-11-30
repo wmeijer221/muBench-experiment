@@ -5,6 +5,8 @@ from numbers import Number
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from gssi_experiment.util.util import safe_save_fig
+
 
 def to_averaged_df(
     df: pd.DataFrame,
@@ -36,7 +38,13 @@ def to_averaged_df(
     return avg_df
 
 
-def create_figure(df: pd.DataFrame, x_key: str, synth_key: str, real_key: str):
+def create_figure(
+    df: pd.DataFrame,
+    x_key: str,
+    synth_key: str,
+    real_key: str,
+    output_path: "str | None" = None,
+):
     # Create a figure and axis
     plt.figure()
     ax = plt.axes()
@@ -57,7 +65,10 @@ def create_figure(df: pd.DataFrame, x_key: str, synth_key: str, real_key: str):
     ax.legend()
 
     # Show the plot
-    plt.show()
+    if output_path:
+        safe_save_fig(output_path)
+    else:
+        plt.show()
 
 
 def create_multi_figure(
@@ -92,7 +103,10 @@ def create_multi_figure(
 
 
 def create_plot_comparisons(
-    comparison_tuples: typing.List[typing.Tuple[str]], df: pd.DataFrame, x_column: str
+    comparison_tuples: typing.List[typing.Tuple[str]],
+    df: pd.DataFrame,
+    x_column: str,
+    output_path: "str | None" = None,
 ):
     # Calculate the number of subplots based on the length of comparison_tuples
     num_subplots = len(comparison_tuples)
@@ -123,7 +137,10 @@ def create_plot_comparisons(
 
     # Adjust layout to prevent overlapping titles
     plt.tight_layout()
-    plt.show()
+    if output_path:
+        safe_save_fig(output_path)
+    else:
+        plt.show()
 
 
 def de_snake_case(word: str) -> str:
