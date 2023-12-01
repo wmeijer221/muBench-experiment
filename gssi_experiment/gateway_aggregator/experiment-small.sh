@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_3
+EXP_NAME=pinciroli_replication_fin
 BASE_PATH=./gssi_experiment/gateway_aggregator/results/$EXP_NAME
 
 LOGS_PATH=$BASE_PATH/logs.out
@@ -22,7 +22,7 @@ VARIABLE=1
 
 let counter=1
 
-for RUN in {1..1}
+for RUN in {1..6}
 do
     echo Starting run $RUN
     python3 ./gssi_experiment/gateway_aggregator/experiment_runner_wrapper.py \

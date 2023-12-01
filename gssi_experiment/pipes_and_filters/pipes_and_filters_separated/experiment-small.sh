@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_3
+EXP_NAME=pinciroli_replication_fin
 BASE_PATH=./gssi_experiment/pipes_and_filters/pipes_and_filters_separated/results/$EXP_NAME
 
 LOGS_PATH=$BASE_PATH/logs.out
