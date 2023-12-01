@@ -72,7 +72,12 @@ def create_figure(
 
 
 def create_multi_figure(
-    df: pd.DataFrame, y_keys: typing.List[str], x_key: str, split_key: str, y_label: str
+    df: pd.DataFrame,
+    y_keys: typing.List[str],
+    x_key: str,
+    split_key: str,
+    y_label: str,
+    output_path: "str | None" = None,
 ):
     splits = df[split_key].unique()
     splits.sort()
@@ -99,7 +104,12 @@ def create_multi_figure(
         ax.set_title(f"{split_key}={split}")
 
     plt.tight_layout()
-    plt.show()
+
+    # Show the plot
+    if output_path:
+        safe_save_fig(output_path)
+    else:
+        plt.show()
 
 
 def create_plot_comparisons(
