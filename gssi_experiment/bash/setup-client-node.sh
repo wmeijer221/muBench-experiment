@@ -11,13 +11,6 @@ mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$P
 echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
 kubectl version --client
 
-# Set kubectl config
-echo Copy the config file of your k8s master node into ~/.kube/config
-cd ~
-mkdir .kube
-cd .kube
-touch config
-
 # Clone repo
 cd ~
 git clone https://github.com/wmeijer221/muBench-experiment.git
@@ -26,4 +19,11 @@ cd muBench-experiment
 cat requirements.txt | xargs -n 1 pip3 install
 export PYTHONPATH=~/muBench-experiment/
 
-chmod +x '/home/ubuntu/muBench-experiment/gssi_experiment/util/run-full-experiment.sh'
+# Set kubectl config
+echo Copy the config file of your k8s master node into ~/.kube/config
+cd ~
+mkdir .kube
+cd .kube
+touch config
+
+chmod +x '/home/ubuntu/muBench-experiment/gssi_experiment/bash/*'
