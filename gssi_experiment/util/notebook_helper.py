@@ -72,6 +72,49 @@ def create_figure(
         plt.show()
 
 
+def create_split_multiline_figure(
+    df: pd.DataFrame,
+    split_key: str,
+    x_key: str,
+    y_key: str,
+    y_key2: str,
+    output_path: "str | None" = None,
+):
+    
+    _, axes = plt.subplots(1, 2, figsize=(12, 4))
+    exp_ax, synth_ax = axes[0], axes[1]
+
+    splits = df[split_key].unique()
+
+    for split in splits:
+        sub_df = df[df[split_key] == split]
+        label = f"{de_snake_case(split_key)} = {split}"
+        exp_ax.plot(sub_df[x_key], sub_df[y_key], label=label)
+        std_key = f"std_{y_key}"
+        if std_key in sub_df.columns:
+            upper = sub_df[y_key] + sub_df[std_key]
+            lower = sub_df[y_key] - sub_df[std_key]
+            exp_ax.fill_between(sub_df[x_key], lower, upper, alpha=0.25)
+
+        synth_ax.plot(sub_df[x_key], sub_df[y_key2], label=label)
+        std_key = f"std_{y_key2}"
+        if std_key in sub_df.columns:
+            upper = sub_df[y_key2] + sub_df[std_key]
+            lower = sub_df[y_key2] - sub_df[std_key]
+            synth_ax.fill_between(sub_df[x_key], lower, upper, alpha=0.25)
+
+    exp_ax.legend()
+    synth_ax.legend()
+
+    plt.tight_layout()
+
+    # Show the plot
+    if output_path:
+        safe_save_fig(output_path)
+    else:
+        plt.show()
+
+
 def create_multi_figure(
     df: pd.DataFrame,
     y_keys: typing.List[str],
@@ -79,17 +122,26 @@ def create_multi_figure(
     split_key: str,
     y_label: str,
     output_path: "str | None" = None,
+    num_cols: int = 2,
 ):
-    splits = df[split_key].unique()
+    if split_key:
+        splits = df[split_key].unique()
+    else:
+        splits = [split_key]
     splits.sort()
     num_subplots = len(splits)
 
-    num_rows = math.ceil(num_subplots / 2)
-    num_cols = 2
-    _, axes = plt.subplots(num_rows, num_cols, figsize=(12, 12))
-    axes = axes.flatten() if num_rows > 1 else [axes]
+    num_rows = math.ceil(num_subplots / num_cols)
+    width = 6 * num_cols
+    height = 4 * num_rows
+    _, axes = plt.subplots(num_rows, num_cols, figsize=(width, height))
+    axes = axes.flatten()
+    # axes = axes.flatten() if num_rows > 1 else [axes]
     for i, split in enumerate(splits):
-        tmp_df: pd.DataFrame = df[df[split_key] == split]
+        if split_key:
+            tmp_df: pd.DataFrame = df[df[split_key] == split]
+        else:
+            tmp_df: pd.DataFrame = df
         ax: plt.Axes = axes[i]
 
         tmp_df = tmp_df.sort_values(x_key)
@@ -128,7 +180,9 @@ def create_plot_comparisons(
     num_cols = 2  # Number of columns for the subplots
 
     # Create a larger figure with subplots
-    _, axes = plt.subplots(num_rows, num_cols, figsize=(12, 12))
+    width = 6 * num_cols
+    height = 4 * num_rows
+    _, axes = plt.subplots(num_rows, num_cols, figsize=(width, height))
 
     # Flatten the axes array if there is more than one row
     axes = axes.flatten() if num_rows > 1 else [axes]
