@@ -5,7 +5,7 @@ from numbers import Number
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from gssi_experiment.util.util import safe_save_fig
+from gssi_experiment.util.util import safe_save_fig, flatten
 
 
 def to_averaged_df(
@@ -43,6 +43,7 @@ def create_figure(
     x_key: str,
     synth_key: str,
     real_key: str,
+    y_axis: str,
     output_path: "str | None" = None,
 ):
     # Create a figure and axis
@@ -59,9 +60,9 @@ def create_figure(
     ax.fill_between(df[x_key], upper, lower, facecolor="red", alpha=0.25)
 
     # Add labels and a legend
-    ax.set_ylabel("Latency (ms)")
+    ax.set_ylabel(y_axis)
     ax.set_xlabel(de_snake_case(x_key))
-    ax.set_title("Theoretical and experimental results for response latency")
+    # ax.set_title("Theoretical and experimental results for response latency")
     ax.legend()
 
     # Show the plot
@@ -93,7 +94,8 @@ def create_multi_figure(
 
         tmp_df = tmp_df.sort_values(x_key)
         for y_key in y_keys:
-            tmp_df.plot(x_key, y_key, ax=ax)
+            ax.plot(tmp_df[x_key], tmp_df[y_key], label=de_snake_case(y_key))
+            # tmp_df.plot(x_key, y_key, ax=ax)
             std_key = f"std_{y_key}"
             upper = tmp_df[y_key] + tmp_df[std_key]
             lower = tmp_df[y_key] - tmp_df[std_key]
@@ -101,7 +103,8 @@ def create_multi_figure(
 
         ax.set_xlabel(de_snake_case(x_key))
         ax.set_ylabel(y_label)
-        ax.set_title(f"{split_key}={split}")
+        ax.set_title(f"{de_snake_case(split_key)} = {split}")
+        ax.legend()
 
     plt.tight_layout()
 
@@ -136,7 +139,7 @@ def create_plot_comparisons(
 
         # Plot a line diagram for each pair of columns in the DataFrame
         for column in columns:
-            df.plot(x=x_column, y=column, ax=ax)
+            ax.plot(df[x_column], df[column], label=de_snake_case(column))
             std_key = f"std_{column}"
             upper = df[column] + df[std_key]
             lower = df[column] - df[std_key]
@@ -144,6 +147,7 @@ def create_plot_comparisons(
 
         ax.set_xlabel(de_snake_case(x_column))
         ax.set_ylabel("CPU utilization")
+        ax.legend()
 
     # Adjust layout to prevent overlapping titles
     plt.tight_layout()
