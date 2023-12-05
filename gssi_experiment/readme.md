@@ -55,7 +55,7 @@ _Currently, there is a bug when running the experiments on a Minikube cluster. I
 When experiments are finished running (which takes some time), the experiments' results are stored in their respective `results/pinciroli_replication_fin/` folders.
 To download the theoretical results, run `./gssi_experiment/bash/download-pinciroli-results.sh`.
 To generate the figures etc., run the different Python notebooks.
-If you don't want to go through the process of installing e.g., Jupyter or something, you can simply run [this script](./gssi_experiment/bash/run-notebooks-as-python.sh) as well, which runs all of the notebooks experiments as regular Python scripts.
+If you don't want to go through the process of installing e.g., Jupyter, you can simply run [this script](./gssi_experiment/bash/run-notebooks-as-python.sh) as well, which runs all of the notebooks experiments as regular Python scripts.
 After doing this, all of the figures can be found in the patterns' respective `figures` folder.
 If you used the script, the logs (in which correlation, etc. are printed), can be found in the notebooks' respective `.out` files.
 
