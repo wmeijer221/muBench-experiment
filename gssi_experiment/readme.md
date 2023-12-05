@@ -49,6 +49,7 @@ Each of these files implements the general lifecycle of an experiment (e.g., ite
 These scripts themselves do not directly launch the various muBench services.
 This is done in [the experiment helper](./util/experiment_helper.py) where `run_experiment` implements the common lifecycle of running an experiment.
 Before running an experiment, make sure that prometheus is running.
+If you forgot to do this and therefore no Prometheus data is collected, you can use [This notebook](./gssi_experiment/util/posterior_prometheus_fetcher.ipynb); this is a very unsustainable method of getting the CPU utilization data, however.
 
 _Currently, there is a bug when running the experiments on a Minikube cluster. In that case, the `node-selector` field in `experiment-small.sh` needs to be changed to just `minikube`. If you're doing this in Minikube, make sure that the `USE_MINIKUBE` field in your `.env` file is set to true._
 
