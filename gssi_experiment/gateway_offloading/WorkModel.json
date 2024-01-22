@@ -5,8 +5,8 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            200,
-            200
+            250,
+            250
           ],
           "thread_pool_size": 1,
           "trials": 20
@@ -54,8 +54,8 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            200,
-            200
+            250,
+            250
           ],
           "thread_pool_size": 1,
           "trials": 20
@@ -89,8 +89,8 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            200,
-            200
+            250,
+            250
           ],
           "thread_pool_size": 1,
           "trials": 12
@@ -113,8 +113,8 @@
         "cpu_stress": {
           "run": true,
           "range_complexity": [
-            200,
-            200
+            250,
+            250
           ],
           "thread_pool_size": 1,
           "trials": 15
