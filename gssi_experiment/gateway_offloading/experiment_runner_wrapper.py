@@ -53,7 +53,7 @@ def write_tmp_work_model_for_offload(gw_offload: int) -> str:
         for service, workload in service_workloads:
             base_nested_key[0] = service
             workload = workload - gw_offload
-            yield base_nested_key, workload
+            yield base_nested_key.copy(), workload
 
     tmp_base_worker_model_path = f"{args.base_worker_model_file_name}.tmp"
     doc_helper.write_concrete_data_document(
