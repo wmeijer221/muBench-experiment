@@ -20,6 +20,7 @@ from gssi_experiment.util.prometheus_helper import (
     TIME_FORMAT,
 )
 import gssi_experiment.util.mubench_helper as mubench_helper
+from gssi_experiment.__version__ import VERSION
 
 dotenv.load_dotenv()
 
@@ -126,6 +127,7 @@ def _write_metadata(
 ):
     # Write meta data file
     meta_data = {
+        "version": VERSION,
         "start_time": start_time.strftime(TIME_FORMAT),
         "end_time": end_time.strftime(TIME_FORMAT),
         "experiment_parameters": exp_params.__dict__,
