@@ -17,12 +17,7 @@ def __save_plot(
 ):
     if not figure_output_path is None:
         print(f"{figure_output_path=}")
-
-        if isinstance(output_format, str):
-            output_format = [output_format]
-
-        for form in output_format:
-            safe_save_fig(figure_output_path, display_output, form)
+        safe_save_fig(figure_output_path, display_output, output_format)
     elif display_output:
         plt.show()
 
