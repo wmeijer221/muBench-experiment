@@ -267,12 +267,12 @@ class SafeDict(dict, Generic[_KT, _VT]):
             super().__setitem__(__key, __value)
 
 
-def safe_save_fig(output_path, show_figure: bool = True):
+def safe_save_fig(output_path, show_figure: bool = True, format: str = "png"):
     """Helper method to safe figures in a potentially non-existent directory."""
     dir_name = os.path.dirname(output_path)
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
-    plt.savefig(output_path, dpi=400, format="pdf")
+    plt.savefig(output_path, dpi=400, format=format)
     if not show_figure:
         plt.close()
 
