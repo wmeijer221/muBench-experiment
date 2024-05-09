@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_NAME=pinciroli_replication_fin
+EXP_NAME=pinciroli_replication_22_jan_24
 BASE_PATH=./gssi_experiment/gateway_offloading/results/$EXP_NAME
 LOGS_PATH=$BASE_PATH/logs.out
 mkdir -p $BASE_PATH

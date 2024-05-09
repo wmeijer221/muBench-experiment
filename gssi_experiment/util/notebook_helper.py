@@ -2,10 +2,11 @@ import typing
 import math
 from numbers import Number
 
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from gssi_experiment.util.util import safe_save_fig, flatten
+from gssi_experiment.util.util import safe_save_fig
 
 
 def to_averaged_df(
@@ -67,6 +68,7 @@ def create_figure(
 
     # Show the plot
     if output_path:
+        print(f"{output_path=}")
         safe_save_fig(output_path)
     else:
         plt.show()
@@ -80,7 +82,6 @@ def create_split_multiline_figure(
     y_key2: str,
     output_path: "str | None" = None,
 ):
-    
     _, axes = plt.subplots(1, 2, figsize=(12, 4))
     exp_ax, synth_ax = axes[0], axes[1]
 
@@ -110,6 +111,7 @@ def create_split_multiline_figure(
 
     # Show the plot
     if output_path:
+        print(f"{output_path=}")
         safe_save_fig(output_path)
     else:
         plt.show()
@@ -162,6 +164,7 @@ def create_multi_figure(
 
     # Show the plot
     if output_path:
+        print(f"{output_path=}")
         safe_save_fig(output_path)
     else:
         plt.show()
@@ -206,6 +209,7 @@ def create_plot_comparisons(
     # Adjust layout to prevent overlapping titles
     plt.tight_layout()
     if output_path:
+        print(f"{output_path=}")
         safe_save_fig(output_path)
     else:
         plt.show()
